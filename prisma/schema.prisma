@@ -1,0 +1,286 @@
+// JRW Engineering — Prisma Schema
+// Prisma v7: datasource URL is provided via prisma.config.ts
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  admin
+  user
+}
+
+enum ProjectStatus {
+  active
+  completed
+  on_hold
+  archived
+}
+
+enum QuoteStatus {
+  draft
+  sent
+  approved
+  rejected
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  overdue
+  cancelled
+}
+
+// ---------------------------------------------------------------------------
+// Auth Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String    @unique
+  emailVerifiedAt DateTime?
+  hashedPassword  String?
+  role            UserRole  @default(user)
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  projects      Project[]  @relation("ProjectCreatedBy")
+  quotes        Quote[]    @relation("QuoteCreatedBy")
+  invoices      Invoice[]  @relation("InvoiceCreatedBy")
+  uploadedFiles File[]     @relation("FileUploadedBy")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile (singleton for document headers)
+// ---------------------------------------------------------------------------
+
+model CompanyProfile {
+  id            String   @id @default(cuid())
+  companyName   String
+  ownerName     String
+  title         String   // e.g. "PE"
+  address       String
+  city          String
+  state         String
+  zip           String
+  phone         String
+  email         String
+  peCertNumber  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Clients & Contacts
+// ---------------------------------------------------------------------------
+
+model Client {
+  id          String    @id @default(cuid())
+  companyName String?   // null for individual clients
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  zip         String?
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+
+  contacts Contact[]
+  projects Project[]
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  clientId  String
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  title     String?  // e.g. "Project Owner"
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projects Project[] @relation("ProjectPrimaryContact")
+
+  @@index([clientId])
+}
+
+// ---------------------------------------------------------------------------
+// Projects
+// ---------------------------------------------------------------------------
+
+model Project {
+  id               String        @id @default(cuid())
+  projectNumber    String        @unique // format "YY-NNN" e.g. "25-063"
+  name             String
+  clientId         String
+  primaryContactId String?
+  service          String        // e.g. "Mechanical Support Design"
+  description      String?       @db.Text
+  location         String        // full address string
+  status           ProjectStatus @default(active)
+  createdById      String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  archivedAt       DateTime?
+
+  client         Client   @relation(fields: [clientId], references: [id])
+  primaryContact Contact? @relation("ProjectPrimaryContact", fields: [primaryContactId], references: [id])
+  createdBy      User     @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+
+  quotes   Quote[]
+  invoices Invoice[]
+  files    File[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([projectNumber])
+}
+
+// ---------------------------------------------------------------------------
+// Quotes
+// ---------------------------------------------------------------------------
+
+model Quote {
+  id           String      @id @default(cuid())
+  quoteNumber  String      @unique
+  projectId    String
+  createdById  String
+  date         DateTime    // date shown on quote document
+  inclusions   String[]    // list of included services
+  exclusions   String[]    // list of excluded items
+  fee          Decimal     @db.Decimal(10, 2)
+  billingTerms String      // e.g. "Project will be billed 100% at time of submission"
+  status       QuoteStatus @default(draft)
+  notes        String?     @db.Text
+  sentAt       DateTime?
+  approvedAt   DateTime?
+  rejectedAt   DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdBy User     @relation("QuoteCreatedBy", fields: [createdById], references: [id])
+  invoice   Invoice? @relation("QuoteInvoice")
+
+  @@index([status])
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Invoices & Line Items
+// ---------------------------------------------------------------------------
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique // format "JRWE-YY-NNN"
+  projectId      String
+  quoteId        String?       @unique // one-to-one with Quote
+  createdById    String
+  invoiceDate    DateTime
+  billingFrom    DateTime?
+  billingTo      DateTime?
+  invoiceService String        // e.g. "Design"
+  total          Decimal       @db.Decimal(10, 2)
+  status         InvoiceStatus @default(draft)
+  dueDate        DateTime?
+  notes          String?       @db.Text
+  sentAt         DateTime?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  project   Project          @relation(fields: [projectId], references: [id])
+  quote     Quote?           @relation("QuoteInvoice", fields: [quoteId], references: [id])
+  createdBy User             @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  lineItems InvoiceLineItem[]
+
+  @@index([status])
+  @@index([projectId])
+  @@index([quoteId])
+}
+
+model InvoiceLineItem {
+  id               String  @id @default(cuid())
+  invoiceId        String
+  service          String  // e.g. "Structural Calcs"
+  phaseDescription String  // e.g. "Compensation"
+  contractAmount   Decimal @db.Decimal(10, 2)
+  percentComplete  Decimal @db.Decimal(5, 2)
+  invoiceAmount    Decimal @db.Decimal(10, 2)
+  sortOrder        Int     @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Files
+// ---------------------------------------------------------------------------
+
+model File {
+  id           String   @id @default(cuid())
+  projectId    String
+  name         String
+  originalName String
+  s3Key        String
+  s3Bucket     String
+  mimeType     String?
+  sizeBytes    Int
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id])
+  uploadedBy User    @relation("FileUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+}
