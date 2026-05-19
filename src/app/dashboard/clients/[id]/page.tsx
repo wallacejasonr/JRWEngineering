@@ -1,4 +1,9 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { StatusBadge } from "@/components/StatusBadge";
+import ContactsSection from "./ContactsSection";
+import { archiveClient, unarchiveClient } from "../actions";
 
 export default async function ClientDetailPage({
   params,
@@ -7,56 +12,39 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params;
 
-  // Placeholder data
-  const client = {
-    id,
-    company: "Sandbox Projects",
-    email: "info@sandboxprojects.com",
-    phone: "(555) 100-2000",
-    address: "123 Main St",
-    city: "Denver",
-    state: "CO",
-    zip: "80202",
-    notes: "Long-standing client, primarily residential and multi-family.",
-  };
+  const client = await prisma.client.findUnique({
+    where: { id },
+    include: {
+      contacts: {
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+      },
+      projects: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          projectNumber: true,
+          name: true,
+          status: true,
+        },
+      },
+    },
+  });
 
-  const contacts = [
-    {
-      name: "Josh Sandbox",
-      email: "josh@sandboxprojects.com",
-      phone: "(555) 100-2001",
-      title: "Owner",
-      isPrimary: true,
-    },
-    {
-      name: "Maria Sandbox",
-      email: "maria@sandboxprojects.com",
-      phone: "(555) 100-2002",
-      title: "Project Manager",
-      isPrimary: false,
-    },
-  ];
+  if (!client) notFound();
 
-  const projects = [
-    {
-      id: "p1",
-      number: "25-063",
-      name: "Multi-Family Structural",
-      status: "active",
-    },
-    {
-      id: "p2",
-      number: "25-060",
-      name: "Townhome Foundation Review",
-      status: "completed",
-    },
-    {
-      id: "p3",
-      number: "25-055",
-      name: "Commercial Remodel Structural",
-      status: "active",
-    },
-  ];
+  const displayName =
+    client.companyName ??
+    (client.contacts[0]
+      ? `${client.contacts[0].firstName} ${client.contacts[0].lastName}`
+      : "(no name)");
+
+  const addressLine = [
+    client.address,
+    [client.city, client.state].filter(Boolean).join(", "),
+    client.zip,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <>
@@ -69,119 +57,131 @@ export default async function ClientDetailPage({
         </Link>
       </div>
 
-      {/* Client Header */}
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          {client.company}
-        </h1>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-600">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="font-medium text-slate-500">Email:</span>{" "}
-            {client.email}
+            <h1 className="text-2xl font-bold text-slate-900">{displayName}</h1>
+            {client.archivedAt && (
+              <p className="mt-1 text-sm text-slate-500 italic">Archived</p>
+            )}
           </div>
-          <div>
-            <span className="font-medium text-slate-500">Phone:</span>{" "}
-            {client.phone}
-          </div>
-          <div>
-            <span className="font-medium text-slate-500">Address:</span>{" "}
-            {client.address}, {client.city}, {client.state} {client.zip}
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/clients/${client.id}/edit`}
+              className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
+            >
+              Edit
+            </Link>
+            {client.archivedAt ? (
+              <form
+                action={async () => {
+                  "use server";
+                  await unarchiveClient(client.id);
+                }}
+              >
+                <button className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium">
+                  Unarchive
+                </button>
+              </form>
+            ) : (
+              <form
+                action={async () => {
+                  "use server";
+                  await archiveClient(client.id);
+                }}
+              >
+                <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
+                  Archive
+                </button>
+              </form>
+            )}
           </div>
         </div>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
+          {client.email && (
+            <div>
+              <span className="font-medium text-slate-500">Email:</span>{" "}
+              {client.email}
+            </div>
+          )}
+          {client.phone && (
+            <div>
+              <span className="font-medium text-slate-500">Phone:</span>{" "}
+              {client.phone}
+            </div>
+          )}
+          {addressLine && (
+            <div className="sm:col-span-2">
+              <span className="font-medium text-slate-500">Address:</span>{" "}
+              {addressLine}
+            </div>
+          )}
+        </div>
         {client.notes && (
-          <p className="mt-3 text-sm text-slate-500">{client.notes}</p>
+          <p className="mt-4 text-sm text-slate-500 whitespace-pre-wrap">
+            {client.notes}
+          </p>
         )}
       </div>
 
-      {/* Contacts */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-6">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">Contacts</h2>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {contacts.map((contact) => (
-            <div key={contact.email} className="px-6 py-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">
-                  {contact.name}
-                  {contact.isPrimary && (
-                    <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                      Primary
-                    </span>
-                  )}
-                </p>
-                <p className="text-sm text-slate-500">{contact.title}</p>
-              </div>
-              <div className="text-sm text-slate-600 text-right">
-                <p>{contact.email}</p>
-                <p>{contact.phone}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ContactsSection clientId={client.id} contacts={client.contacts} />
 
-      {/* Projects */}
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
-        <div className="px-6 py-4 border-b border-slate-200">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Projects</h2>
+          <Link
+            href={`/dashboard/projects/new?clientId=${client.id}`}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            + New Project
+          </Link>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Project #
-              </th>
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Name
-              </th>
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Status
-              </th>
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {projects.map((project) => (
-              <tr key={project.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4 font-mono text-slate-700">
-                  {project.number}
-                </td>
-                <td className="px-6 py-4 text-slate-900">{project.name}</td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={project.status} />
-                </td>
-                <td className="px-6 py-4">
-                  <Link
-                    href={`/dashboard/projects/${project.id}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    View
-                  </Link>
-                </td>
+        {client.projects.length === 0 ? (
+          <p className="px-6 py-8 text-sm text-slate-500 text-center">
+            No projects yet.
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="text-left px-6 py-3 font-semibold text-slate-600">
+                  Project #
+                </th>
+                <th className="text-left px-6 py-3 font-semibold text-slate-600">
+                  Name
+                </th>
+                <th className="text-left px-6 py-3 font-semibold text-slate-600">
+                  Status
+                </th>
+                <th className="text-left px-6 py-3 font-semibold text-slate-600">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {client.projects.map((project) => (
+                <tr key={project.id} className="hover:bg-slate-50">
+                  <td className="px-6 py-4 font-mono text-slate-700">
+                    {project.projectNumber}
+                  </td>
+                  <td className="px-6 py-4 text-slate-900">{project.name}</td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={project.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Link
+                      href={`/dashboard/projects/${project.id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    active: "bg-green-100 text-green-700",
-    completed: "bg-slate-100 text-slate-600",
-    on_hold: "bg-yellow-100 text-yellow-700",
-    archived: "bg-slate-100 text-slate-500",
-  };
-  return (
-    <span
-      className={`inline-block text-xs font-medium px-2.5 py-0.5 rounded-full ${styles[status] ?? "bg-slate-100 text-slate-600"}`}
-    >
-      {status.replace("_", " ")}
-    </span>
   );
 }

@@ -13,6 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1030.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "@react-pdf/renderer": "^4.5.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "next": "16.2.3",

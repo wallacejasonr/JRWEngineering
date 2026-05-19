@@ -1,4 +1,25 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { StatusBadge } from "@/components/StatusBadge";
+import LineItemsSection from "./LineItemsSection";
+import { deleteInvoice, setInvoiceStatus } from "../actions";
+
+function formatMoney(value: { toNumber: () => number }): string {
+  return value.toNumber().toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+}
+
+function formatDate(d: Date | null): string {
+  if (!d) return "—";
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export default async function InvoiceDetailPage({
   params,
@@ -7,45 +28,46 @@ export default async function InvoiceDetailPage({
 }) {
   const { id } = await params;
 
-  // Placeholder data
-  const invoice = {
-    id,
-    number: "JRWE-25-001",
-    status: "paid",
-    date: "April 1, 2025",
-    project: { number: "25-063", name: "Multi-Family Structural" },
-    client: "Sandbox Projects",
-    contact: "Josh Sandbox",
-    invoiceService: "Structural Engineering",
-    billingFrom: "March 15, 2025",
-    billingTo: "March 31, 2025",
-    notes: "Payment received via check #4521. Thank you.",
-    lineItems: [
-      {
-        service: "Structural Calcs",
-        phase: "Design Phase",
-        contractAmount: "$5,000.00",
-        percentComplete: "50%",
-        invoiceAmount: "$2,500.00",
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    include: {
+      project: {
+        include: {
+          client: {
+            include: { contacts: { where: { isPrimary: true }, take: 1 } },
+          },
+          primaryContact: true,
+        },
       },
-      {
-        service: "Construction Docs",
-        phase: "Documentation",
-        contractAmount: "$3,500.00",
-        percentComplete: "50%",
-        invoiceAmount: "$1,750.00",
-      },
-    ],
-    total: "$4,250.00",
-  };
+      quote: { select: { id: true, quoteNumber: true } },
+      lineItems: { orderBy: { sortOrder: "asc" } },
+    },
+  });
 
-  const statusStyles: Record<string, string> = {
-    draft: "bg-blue-100 text-blue-700",
-    sent: "bg-yellow-100 text-yellow-700",
-    paid: "bg-green-100 text-green-700",
-    overdue: "bg-red-100 text-red-700",
-    cancelled: "bg-slate-100 text-slate-500",
-  };
+  if (!invoice) notFound();
+
+  const client = invoice.project.client;
+  const clientLabel =
+    client.companyName ??
+    (client.contacts[0]
+      ? `${client.contacts[0].firstName} ${client.contacts[0].lastName}`
+      : "—");
+  const contactLabel = invoice.project.primaryContact
+    ? `${invoice.project.primaryContact.firstName} ${invoice.project.primaryContact.lastName}`
+    : client.contacts[0]
+      ? `${client.contacts[0].firstName} ${client.contacts[0].lastName}`
+      : "—";
+
+  const editable = invoice.status === "draft";
+
+  const lineItemsForClient = invoice.lineItems.map((item) => ({
+    id: item.id,
+    service: item.service,
+    phaseDescription: item.phaseDescription,
+    contractAmount: item.contractAmount.toString(),
+    percentComplete: item.percentComplete.toString(),
+    invoiceAmount: item.invoiceAmount.toString(),
+  }));
 
   return (
     <>
@@ -58,125 +80,180 @@ export default async function InvoiceDetailPage({
         </Link>
       </div>
 
-      {/* Invoice Header */}
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-mono text-slate-500">
-              {invoice.number}
+            <p className="text-sm font-mono text-slate-500">{invoice.invoiceNumber}</p>
+            <h1 className="text-2xl font-bold text-slate-900 mt-1">Invoice</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {formatDate(invoice.invoiceDate)}
             </p>
-            <h1 className="text-2xl font-bold text-slate-900 mt-1">
-              Invoice
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">{invoice.date}</p>
+            <div className="mt-2">
+              <StatusBadge status={invoice.status} />
+            </div>
           </div>
-          <span
-            className={`inline-block text-xs font-medium px-3 py-1 rounded-full ${statusStyles[invoice.status] ?? ""}`}
-          >
-            {invoice.status}
-          </span>
+          <div className="flex items-center gap-2">
+            {editable && (
+              <>
+                <Link
+                  href={`/dashboard/invoices/${invoice.id}/edit`}
+                  className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
+                >
+                  Edit
+                </Link>
+                <form
+                  action={async () => {
+                    "use server";
+                    await deleteInvoice(invoice.id);
+                  }}
+                >
+                  <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
+                    Delete
+                  </button>
+                </form>
+              </>
+            )}
+            <a
+              href={`/api/invoices/${invoice.id}/pdf`}
+              target="_blank"
+              rel="noopener"
+              className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
+            >
+              PDF
+            </a>
+          </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
           <div>
             <span className="font-medium text-slate-500">Project:</span>{" "}
-            <span className="text-slate-700">
-              #{invoice.project.number} {invoice.project.name}
-            </span>
+            <Link
+              href={`/dashboard/projects/${invoice.projectId}`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              #{invoice.project.projectNumber}
+            </Link>
           </div>
           <div>
             <span className="font-medium text-slate-500">Client:</span>{" "}
-            <span className="text-slate-700">{invoice.client}</span>
+            <Link
+              href={`/dashboard/clients/${client.id}`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              {clientLabel}
+            </Link>
           </div>
           <div>
             <span className="font-medium text-slate-500">Contact:</span>{" "}
-            <span className="text-slate-700">{invoice.contact}</span>
+            <span className="text-slate-700">{contactLabel}</span>
           </div>
           <div>
             <span className="font-medium text-slate-500">Service:</span>{" "}
             <span className="text-slate-700">{invoice.invoiceService}</span>
           </div>
-          <div className="sm:col-span-2">
-            <span className="font-medium text-slate-500">
-              Billing Period:
-            </span>{" "}
-            <span className="text-slate-700">
-              {invoice.billingFrom} &mdash; {invoice.billingTo}
-            </span>
-          </div>
+          {(invoice.billingFrom || invoice.billingTo) && (
+            <div className="sm:col-span-2">
+              <span className="font-medium text-slate-500">Billing Period:</span>{" "}
+              <span className="text-slate-700">
+                {formatDate(invoice.billingFrom)} &mdash; {formatDate(invoice.billingTo)}
+              </span>
+            </div>
+          )}
+          {invoice.dueDate && (
+            <div>
+              <span className="font-medium text-slate-500">Due:</span>{" "}
+              <span className="text-slate-700">{formatDate(invoice.dueDate)}</span>
+            </div>
+          )}
+          {invoice.quote && (
+            <div>
+              <span className="font-medium text-slate-500">From Quote:</span>{" "}
+              <Link
+                href={`/dashboard/quotes/${invoice.quote.id}`}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                {invoice.quote.quoteNumber}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Line Items */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-6 overflow-x-auto">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">Line Items</h2>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Service
-              </th>
-              <th className="text-left px-6 py-3 font-semibold text-slate-600">
-                Phase Description
-              </th>
-              <th className="text-right px-6 py-3 font-semibold text-slate-600">
-                Contract Amt
-              </th>
-              <th className="text-right px-6 py-3 font-semibold text-slate-600">
-                % Complete
-              </th>
-              <th className="text-right px-6 py-3 font-semibold text-slate-600">
-                Invoice Amt
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {invoice.lineItems.map((item, i) => (
-              <tr key={i} className="hover:bg-slate-50">
-                <td className="px-6 py-4 text-slate-900">{item.service}</td>
-                <td className="px-6 py-4 text-slate-700">{item.phase}</td>
-                <td className="px-6 py-4 text-right text-slate-700">
-                  {item.contractAmount}
-                </td>
-                <td className="px-6 py-4 text-right text-slate-700">
-                  {item.percentComplete}
-                </td>
-                <td className="px-6 py-4 text-right font-medium text-slate-900">
-                  {item.invoiceAmount}
-                </td>
-              </tr>
-            ))}
-            {/* Total row */}
-            <tr className="bg-slate-50 font-semibold">
-              <td colSpan={4} className="px-6 py-4 text-right text-slate-900">
-                Total
-              </td>
-              <td className="px-6 py-4 text-right text-slate-900">
-                {invoice.total}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <LineItemsSection
+        invoiceId={invoice.id}
+        lineItems={lineItemsForClient}
+        total={invoice.total.toString()}
+        editable={editable}
+      />
 
-      {/* Notes */}
       {invoice.notes && (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Notes</h2>
-          <p className="text-sm text-slate-700">{invoice.notes}</p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap">{invoice.notes}</p>
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="flex flex-wrap gap-3">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
-          Send
-        </button>
-        <button className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
-          Mark Paid
-        </button>
+        {invoice.status === "draft" && (
+          <form
+            action={async () => {
+              "use server";
+              await setInvoiceStatus(invoice.id, "sent");
+            }}
+          >
+            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
+              Mark as Sent
+            </button>
+          </form>
+        )}
+        {(invoice.status === "sent" || invoice.status === "overdue") && (
+          <form
+            action={async () => {
+              "use server";
+              await setInvoiceStatus(invoice.id, "paid");
+            }}
+          >
+            <button className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
+              Mark Paid
+            </button>
+          </form>
+        )}
+        {invoice.status === "sent" && (
+          <form
+            action={async () => {
+              "use server";
+              await setInvoiceStatus(invoice.id, "overdue");
+            }}
+          >
+            <button className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
+              Mark Overdue
+            </button>
+          </form>
+        )}
+        {invoice.status !== "paid" && invoice.status !== "cancelled" && (
+          <form
+            action={async () => {
+              "use server";
+              await setInvoiceStatus(invoice.id, "cancelled");
+            }}
+          >
+            <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-4 py-2 rounded-md transition-colors">
+              Cancel Invoice
+            </button>
+          </form>
+        )}
+        {invoice.status !== "draft" && invoice.status !== "paid" && (
+          <form
+            action={async () => {
+              "use server";
+              await setInvoiceStatus(invoice.id, "draft");
+            }}
+          >
+            <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-4 py-2 rounded-md transition-colors">
+              Reset to Draft
+            </button>
+          </form>
+        )}
       </div>
     </>
   );
