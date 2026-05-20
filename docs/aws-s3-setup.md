@@ -10,7 +10,7 @@ By the end of this guide you'll have values for:
 
 ```
 AWS_REGION=us-west-2
-AWS_S3_BUCKET=jrw-engineering-files
+AWS_S3_BUCKET=jrwengineering
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 ```
@@ -57,7 +57,7 @@ Settings:
 
 | Field | Value |
 |---|---|
-| Bucket name | `jrw-engineering-files` (must be globally unique — add a suffix if taken) |
+| Bucket name | `jrwengineering` (must be globally unique — add a suffix if taken) |
 | AWS Region | The region from step 2 |
 | Object Ownership | **ACLs disabled (recommended)** |
 | Block Public Access settings | **Block all public access — checked** (leave default) |
@@ -113,7 +113,7 @@ The app needs limited permissions on **only this bucket**.
         "s3:ListBucket",
         "s3:GetBucketLocation"
       ],
-      "Resource": "arn:aws:s3:::jrw-engineering-files"
+      "Resource": "arn:aws:s3:::jrwengineering"
     },
     {
       "Sid": "ObjectLevel",
@@ -124,13 +124,13 @@ The app needs limited permissions on **only this bucket**.
         "s3:DeleteObject",
         "s3:GetObjectAttributes"
       ],
-      "Resource": "arn:aws:s3:::jrw-engineering-files/*"
+      "Resource": "arn:aws:s3:::jrwengineering/*"
     }
   ]
 }
 ```
 
-Replace `jrw-engineering-files` with your actual bucket name in **both** ARNs.
+**Important:** make sure the bucket name in **both** `Resource` ARNs matches your actual bucket exactly. A mismatch is a silent 403 on uploads — the policy compiles fine but doesn't grant access to anything that exists.
 
 3. **Next** → name it `JrwEngineeringS3Access` → **Create policy**.
 
@@ -165,7 +165,7 @@ Add to `.env` (do not commit):
 
 ```
 AWS_REGION=us-west-2
-AWS_S3_BUCKET=jrw-engineering-files
+AWS_S3_BUCKET=jrwengineering
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 ```
