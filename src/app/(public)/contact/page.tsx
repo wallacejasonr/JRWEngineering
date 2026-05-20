@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact Us | JRW Engineering",
@@ -39,40 +38,6 @@ export default function ContactPage() {
               </p>
 
               <div className="space-y-6">
-                {/* Address */}
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                    <svg
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      Office
-                    </h3>
-                    <address className="mt-1 text-sm not-italic text-slate-600">
-                      1247 E Georgia Ave
-                      <br />
-                      Phoenix, AZ 85014
-                    </address>
-                  </div>
-                </div>
-
                 {/* Phone */}
                 <div className="flex gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
@@ -125,10 +90,10 @@ export default function ContactPage() {
                       Email
                     </h3>
                     <a
-                      href="mailto:info@jrwengineering.com"
+                      href="mailto:jason@jrwengineering.us"
                       className="mt-1 block text-sm text-slate-600 hover:text-blue-600"
                     >
-                      info@jrwengineering.com
+                      jason@jrwengineering.us
                     </a>
                   </div>
                 </div>
@@ -148,12 +113,26 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Contact Form */}
+            {/* Email CTA */}
             <div>
-              <h2 className="mb-6 text-2xl font-bold text-slate-900">
-                Send Us a Message
-              </h2>
-              <ContactForm />
+              <div className="flex h-full flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-10 text-center">
+                <h2 className="mb-3 text-2xl font-bold text-slate-900">
+                  Email Us
+                </h2>
+                <p className="mb-8 max-w-sm text-base leading-relaxed text-slate-600">
+                  Reach out by email and we will respond within one business
+                  day.
+                </p>
+                <a
+                  href="mailto:jason@jrwengineering.us"
+                  className="inline-block rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  Email jason@jrwengineering.us
+                </a>
+                <p className="mt-4 text-sm text-slate-500">
+                  jason@jrwengineering.us
+                </p>
+              </div>
             </div>
           </div>
         </div>

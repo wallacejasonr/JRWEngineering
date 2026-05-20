@@ -122,18 +122,12 @@ export default function HomePage() {
                 build-outs to residential projects, we deliver precise,
                 code-compliant solutions you can build on.
               </p>
-              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <div className="mt-8 flex justify-center">
                 <Link
                   href="/contact"
                   className="inline-block rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
                 >
                   Get in Touch
-                </Link>
-                <Link
-                  href="/services"
-                  className="inline-block rounded-md border border-slate-500 px-6 py-3 text-base font-semibold text-slate-200 transition-colors hover:border-slate-300 hover:text-white"
-                >
-                  Our Services
                 </Link>
               </div>
             </div>
@@ -166,14 +160,6 @@ export default function HomePage() {
                   </p>
                 </div>
               ))}
-            </div>
-            <div className="mt-10 text-center">
-              <Link
-                href="/services"
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-              >
-                View all services &rarr;
-              </Link>
             </div>
           </div>
         </section>

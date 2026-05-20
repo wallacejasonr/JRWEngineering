@@ -1,9 +1,7 @@
 import Link from "next/link";
 
 const quickLinks = [
-  { href: "/services", label: "Services" },
   { href: "/about", label: "About" },
-  { href: "/team", label: "Team" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/contact", label: "Contact" },
 ];
@@ -54,8 +52,6 @@ export default function Footer() {
               Contact Us
             </h3>
             <address className="flex flex-col gap-2 text-sm not-italic text-slate-400">
-              <span>1247 E Georgia Ave</span>
-              <span>Phoenix, AZ 85014</span>
               <a
                 href="tel:6026809831"
                 className="transition-colors hover:text-white"
@@ -63,10 +59,10 @@ export default function Footer() {
                 (602) 680-9831
               </a>
               <a
-                href="mailto:info@jrwengineering.com"
+                href="mailto:jason@jrwengineering.us"
                 className="transition-colors hover:text-white"
               >
-                info@jrwengineering.com
+                jason@jrwengineering.us
               </a>
             </address>
           </div>
