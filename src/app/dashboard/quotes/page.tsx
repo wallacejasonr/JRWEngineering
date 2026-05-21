@@ -1,6 +1,16 @@
 import Link from "next/link";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SortableHeader } from "@/components/list/SortableHeader";
+import { SearchForm } from "@/components/list/SearchForm";
+import { Pagination } from "@/components/list/Pagination";
+import {
+  buildListUrl,
+  parseListParams,
+  type ListSearchParams,
+  type SortDir,
+} from "@/lib/list-params";
 
 function formatMoney(value: { toNumber: () => number }): string {
   return value.toNumber().toLocaleString("en-US", {
@@ -17,17 +27,97 @@ function formatDate(d: Date): string {
   });
 }
 
-export default async function QuotesPage() {
-  const quotes = await prisma.quote.findMany({
-    orderBy: { date: "desc" },
-    include: {
-      project: {
-        include: {
-          client: { include: { contacts: { where: { isPrimary: true }, take: 1 } } },
+const SORT_KEYS = [
+  "quoteNumber",
+  "project",
+  "client",
+  "fee",
+  "status",
+  "date",
+] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+
+function orderByFor(
+  sort: SortKey,
+  dir: SortDir
+): Prisma.QuoteOrderByWithRelationInput[] {
+  switch (sort) {
+    case "quoteNumber":
+      return [{ quoteNumber: dir }];
+    case "project":
+      return [{ project: { name: dir } }];
+    case "client":
+      return [{ project: { client: { companyName: { sort: dir, nulls: "last" } } } }];
+    case "fee":
+      return [{ fee: dir }];
+    case "status":
+      return [{ status: dir }];
+    case "date":
+    default:
+      return [{ date: dir }];
+  }
+}
+
+function searchWhere(q: string): Prisma.QuoteWhereInput {
+  return {
+    OR: [
+      { quoteNumber: { contains: q, mode: "insensitive" } },
+      { project: { name: { contains: q, mode: "insensitive" } } },
+      {
+        project: {
+          client: { companyName: { contains: q, mode: "insensitive" } },
         },
       },
-    },
+    ],
+  };
+}
+
+export default async function QuotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<ListSearchParams>;
+}) {
+  const raw = await searchParams;
+  const list = parseListParams<SortKey>(raw, {
+    sortKeys: SORT_KEYS,
+    defaultSort: "date",
+    defaultDir: "desc",
   });
+
+  const where: Prisma.QuoteWhereInput = list.q ? searchWhere(list.q) : {};
+
+  const [quotes, total] = await Promise.all([
+    prisma.quote.findMany({
+      where,
+      orderBy: orderByFor(list.sort, list.dir),
+      include: {
+        project: {
+          include: {
+            client: {
+              include: {
+                contacts: { where: { isPrimary: true }, take: 1 },
+              },
+            },
+          },
+        },
+      },
+      skip: list.skip,
+      take: list.take,
+    }),
+    prisma.quote.count({ where }),
+  ]);
+
+  const pathname = "/dashboard/quotes";
+  const currentForUrl = {
+    q: list.q || undefined,
+    sort: list.sort,
+    dir: list.dir,
+    page: String(list.page),
+  };
+  const sortHeaderHrefFor = (p: { sort: string; dir: SortDir; page: string }) =>
+    buildListUrl(pathname, currentForUrl, p);
+  const pageHrefFor = (p: { page: string }) =>
+    buildListUrl(pathname, currentForUrl, { page: p.page });
 
   return (
     <>
@@ -41,28 +131,81 @@ export default async function QuotesPage() {
         </Link>
       </div>
 
+      <SearchForm
+        action={pathname}
+        q={list.q}
+        placeholder="Search quote #, project, client…"
+        preserved={{ sort: list.sort, dir: list.dir }}
+      />
+
       {quotes.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
-          <p className="text-slate-500 mb-4">No quotes yet.</p>
-          <Link
-            href="/dashboard/quotes/new"
-            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-          >
-            Create your first quote →
-          </Link>
+          {list.q ? (
+            <p className="text-slate-500">No quotes match your search.</p>
+          ) : (
+            <>
+              <p className="text-slate-500 mb-4">No quotes yet.</p>
+              <Link
+                href="/dashboard/quotes/new"
+                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+              >
+                Create your first quote →
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Quote #</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Project</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Client</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Fee</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Status</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Date</th>
-                <th className="text-left px-6 py-3 font-semibold text-slate-600">Actions</th>
+                <SortableHeader
+                  label="Quote #"
+                  columnKey="quoteNumber"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                />
+                <SortableHeader
+                  label="Project"
+                  columnKey="project"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                />
+                <SortableHeader
+                  label="Client"
+                  columnKey="client"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                />
+                <SortableHeader
+                  label="Fee"
+                  columnKey="fee"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                  defaultDir="desc"
+                />
+                <SortableHeader
+                  label="Status"
+                  columnKey="status"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                />
+                <SortableHeader
+                  label="Date"
+                  columnKey="date"
+                  currentSort={list.sort}
+                  currentDir={list.dir}
+                  hrefFor={sortHeaderHrefFor}
+                  defaultDir="desc"
+                />
+                <th className="text-left px-6 py-3 font-semibold text-slate-600">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -78,13 +221,19 @@ export default async function QuotesPage() {
                     <td className="px-6 py-4 font-mono text-slate-700">
                       {quote.quoteNumber}
                     </td>
-                    <td className="px-6 py-4 text-slate-900">{quote.project.name}</td>
+                    <td className="px-6 py-4 text-slate-900">
+                      {quote.project.name}
+                    </td>
                     <td className="px-6 py-4 text-slate-700">{clientLabel}</td>
-                    <td className="px-6 py-4 text-slate-700">{formatMoney(quote.fee)}</td>
+                    <td className="px-6 py-4 text-slate-700">
+                      {formatMoney(quote.fee)}
+                    </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={quote.status} />
                     </td>
-                    <td className="px-6 py-4 text-slate-700">{formatDate(quote.date)}</td>
+                    <td className="px-6 py-4 text-slate-700">
+                      {formatDate(quote.date)}
+                    </td>
                     <td className="px-6 py-4">
                       <Link
                         href={`/dashboard/quotes/${quote.id}`}
@@ -100,6 +249,13 @@ export default async function QuotesPage() {
           </table>
         </div>
       )}
+
+      <Pagination
+        page={list.page}
+        perPage={list.perPage}
+        total={total}
+        hrefFor={pageHrefFor}
+      />
     </>
   );
 }
