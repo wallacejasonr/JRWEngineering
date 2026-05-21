@@ -125,6 +125,20 @@ export async function updateClient(
 
 export async function archiveClient(clientId: string): Promise<void> {
   await requireUser();
+
+  const blockers = await prisma.project.findMany({
+    where: { clientId, status: { not: "archived" } },
+    select: { projectNumber: true, name: true },
+    orderBy: { projectNumber: "desc" },
+  });
+
+  if (blockers.length > 0) {
+    const list = blockers.map((p) => `${p.projectNumber} ${p.name}`).join("; ");
+    throw new Error(
+      `Cannot archive client. The following projects must be archived first: ${list}`
+    );
+  }
+
   await prisma.client.update({
     where: { id: clientId },
     data: { archivedAt: new Date() },

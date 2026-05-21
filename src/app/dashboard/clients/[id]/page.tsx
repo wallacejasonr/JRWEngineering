@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/StatusBadge";
 import ContactsSection from "./ContactsSection";
-import { archiveClient, unarchiveClient } from "../actions";
+import ArchiveActions from "./ArchiveActions";
 
 export default async function ClientDetailPage({
   params,
@@ -72,29 +72,17 @@ export default async function ClientDetailPage({
             >
               Edit
             </Link>
-            {client.archivedAt ? (
-              <form
-                action={async () => {
-                  "use server";
-                  await unarchiveClient(client.id);
-                }}
-              >
-                <button className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium">
-                  Unarchive
-                </button>
-              </form>
-            ) : (
-              <form
-                action={async () => {
-                  "use server";
-                  await archiveClient(client.id);
-                }}
-              >
-                <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
-                  Archive
-                </button>
-              </form>
-            )}
+            <ArchiveActions
+              clientId={client.id}
+              archived={!!client.archivedAt}
+              blockingProjects={client.projects
+                .filter((p) => p.status !== "archived")
+                .map((p) => ({
+                  id: p.id,
+                  projectNumber: p.projectNumber,
+                  name: p.name,
+                }))}
+            />
           </div>
         </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
