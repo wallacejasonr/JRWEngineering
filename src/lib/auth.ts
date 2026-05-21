@@ -27,6 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        if (user.deactivatedAt) {
+          return null;
+        }
+
         const isValid = await bcrypt.compare(password, user.hashedPassword);
 
         if (!isValid) {
@@ -38,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           image: user.image,
+          role: user.role,
         };
       },
     }),
@@ -52,12 +57,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id as string;
+      }
+      if (session.user && token.role) {
+        session.user.role = token.role as "admin" | "user";
       }
       return session;
     },

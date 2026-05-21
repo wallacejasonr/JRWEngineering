@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
-const navItems = [
+const baseNavItems = [
   { label: "Dashboard", href: "/dashboard", icon: "~" },
   { label: "Clients", href: "/dashboard/clients", icon: "#" },
   { label: "Projects", href: "/dashboard/projects", icon: "P" },
@@ -13,9 +13,17 @@ const navItems = [
   { label: "Invoices", href: "/dashboard/invoices", icon: "$" },
 ];
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navItems = [
+    ...baseNavItems,
+    ...(isAdmin
+      ? [{ label: "Users", href: "/dashboard/users", icon: "U" }]
+      : []),
+    { label: "Account", href: "/dashboard/account", icon: "@" },
+  ];
 
   function isActive(href: string) {
     if (href === "/dashboard") {
