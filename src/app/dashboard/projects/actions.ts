@@ -155,12 +155,70 @@ export async function updateProject(
 
 export async function archiveProject(projectId: string): Promise<void> {
   await requireUser();
-  await prisma.project.update({
-    where: { id: projectId },
-    data: { status: "archived", archivedAt: new Date() },
+
+  const blockers = await prisma.invoice.findMany({
+    where: {
+      projectId,
+      status: { notIn: ["paid", "cancelled"] },
+    },
+    select: { id: true, invoiceNumber: true, status: true },
+    orderBy: { invoiceNumber: "desc" },
   });
+
+  if (blockers.length > 0) {
+    const list = blockers
+      .map((i) => `${i.invoiceNumber} (${i.status})`)
+      .join("; ");
+    throw new Error(
+      `Cannot archive project. The following invoices are still unpaid: ${list}`
+    );
+  }
+
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.project.update({
+      where: { id: projectId },
+      data: { status: "archived", archivedAt: now },
+    }),
+    prisma.quote.updateMany({
+      where: { projectId, archivedAt: null },
+      data: { archivedAt: now },
+    }),
+    prisma.invoice.updateMany({
+      where: { projectId, archivedAt: null },
+      data: { archivedAt: now },
+    }),
+  ]);
+
   revalidatePath("/dashboard/projects");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard/quotes");
+  revalidatePath("/dashboard/invoices");
   redirect(`/dashboard/projects/${projectId}`);
+}
+
+export async function unarchiveProject(projectId: string): Promise<void> {
+  await requireUser();
+
+  await prisma.$transaction([
+    prisma.project.update({
+      where: { id: projectId },
+      data: { status: "active", archivedAt: null },
+    }),
+    prisma.quote.updateMany({
+      where: { projectId, archivedAt: { not: null } },
+      data: { archivedAt: null },
+    }),
+    prisma.invoice.updateMany({
+      where: { projectId, archivedAt: { not: null } },
+      data: { archivedAt: null },
+    }),
+  ]);
+
+  revalidatePath("/dashboard/projects");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard/quotes");
+  revalidatePath("/dashboard/invoices");
 }
 
 export async function setProjectStatus(

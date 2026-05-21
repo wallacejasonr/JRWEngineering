@@ -91,10 +91,18 @@ export async function updateQuote(
 
   const current = await prisma.quote.findUnique({
     where: { id: quoteId },
-    select: { status: true, projectId: true, quoteNumber: true },
+    select: {
+      status: true,
+      projectId: true,
+      quoteNumber: true,
+      archivedAt: true,
+    },
   });
   if (!current) {
     return { ok: false, message: "Quote not found." };
+  }
+  if (current.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
   }
   if (current.status !== "draft") {
     return { ok: false, message: "Only draft quotes can be edited." };
@@ -149,9 +157,17 @@ export async function deleteQuote(quoteId: string): Promise<void> {
   await requireUser();
   const quote = await prisma.quote.findUnique({
     where: { id: quoteId },
-    select: { status: true, projectId: true, invoice: { select: { id: true } } },
+    select: {
+      status: true,
+      projectId: true,
+      archivedAt: true,
+      invoice: { select: { id: true } },
+    },
   });
   if (!quote) return;
+  if (quote.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
+  }
   if (quote.status !== "draft") {
     throw new Error("Only draft quotes can be deleted.");
   }
@@ -169,6 +185,14 @@ export async function setQuoteStatus(
   status: "draft" | "sent" | "approved" | "rejected"
 ): Promise<void> {
   await requireUser();
+
+  const existing = await prisma.quote.findUnique({
+    where: { id: quoteId },
+    select: { archivedAt: true },
+  });
+  if (existing?.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
+  }
 
   const data: {
     status: "draft" | "sent" | "approved" | "rejected";
@@ -205,6 +229,9 @@ export async function convertQuoteToInvoice(quoteId: string): Promise<void> {
     include: { project: true, invoice: true },
   });
   if (!quote) throw new Error("Quote not found.");
+  if (quote.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
+  }
   if (quote.status !== "approved")
     throw new Error("Only approved quotes can be converted.");
   if (quote.invoice) {

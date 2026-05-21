@@ -78,15 +78,25 @@ export default async function InvoicesPage({
   searchParams: Promise<ListSearchParams>;
 }) {
   const raw = await searchParams;
+  const viewRaw = typeof raw.view === "string" ? raw.view : undefined;
+  const view = viewRaw === "archived" ? "archived" : "active";
+
   const list = parseListParams<SortKey>(raw, {
     sortKeys: SORT_KEYS,
     defaultSort: "invoiceDate",
     defaultDir: "desc",
   });
 
-  const where: Prisma.InvoiceWhereInput = list.q ? searchWhere(list.q) : {};
+  const baseWhere: Prisma.InvoiceWhereInput =
+    view === "archived"
+      ? { archivedAt: { not: null } }
+      : { archivedAt: null };
 
-  const [invoices, total] = await Promise.all([
+  const where: Prisma.InvoiceWhereInput = list.q
+    ? { AND: [baseWhere, searchWhere(list.q)] }
+    : baseWhere;
+
+  const [invoices, total, activeCount, archivedCount] = await Promise.all([
     prisma.invoice.findMany({
       where,
       orderBy: orderByFor(list.sort, list.dir),
@@ -105,10 +115,13 @@ export default async function InvoicesPage({
       take: list.take,
     }),
     prisma.invoice.count({ where }),
+    prisma.invoice.count({ where: { archivedAt: null } }),
+    prisma.invoice.count({ where: { archivedAt: { not: null } } }),
   ]);
 
   const pathname = "/dashboard/invoices";
   const currentForUrl = {
+    view: view === "active" ? undefined : "archived",
     q: list.q || undefined,
     sort: list.sort,
     dir: list.dir,
@@ -119,24 +132,62 @@ export default async function InvoicesPage({
   const pageHrefFor = (p: { page: string }) =>
     buildListUrl(pathname, currentForUrl, { page: p.page });
 
+  const activeTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: null, page: null }
+  );
+  const archivedTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: "archived", page: null }
+  );
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Invoices</h1>
       </div>
 
+      <div className="flex gap-1 border-b border-slate-200 mb-4">
+        <Link
+          href={activeTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "active"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Active ({activeCount})
+        </Link>
+        <Link
+          href={archivedTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "archived"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Archived ({archivedCount})
+        </Link>
+      </div>
+
       <SearchForm
         action={pathname}
         q={list.q}
         placeholder="Search invoice #, project, client…"
-        preserved={{ sort: list.sort, dir: list.dir }}
+        preserved={{
+          view: view === "active" ? undefined : "archived",
+          sort: list.sort,
+          dir: list.dir,
+        }}
       />
 
       {invoices.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
           {list.q ? (
             <p className="text-slate-500">No invoices match your search.</p>
-          ) : (
+          ) : view === "active" ? (
             <>
               <p className="text-slate-500 mb-4">No invoices yet.</p>
               <p className="text-sm text-slate-400">
@@ -149,6 +200,8 @@ export default async function InvoicesPage({
                 Go to Quotes →
               </Link>
             </>
+          ) : (
+            <p className="text-slate-500">No archived invoices.</p>
           )}
         </div>
       ) : (

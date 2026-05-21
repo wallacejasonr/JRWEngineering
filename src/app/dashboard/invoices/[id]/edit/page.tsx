@@ -15,7 +15,9 @@ export default async function EditInvoicePage({
   const { id } = await params;
   const invoice = await prisma.invoice.findUnique({ where: { id } });
   if (!invoice) notFound();
-  if (invoice.status !== "draft") redirect(`/dashboard/invoices/${id}`);
+  if (invoice.archivedAt || invoice.status !== "draft") {
+    redirect(`/dashboard/invoices/${id}`);
+  }
 
   return (
     <>

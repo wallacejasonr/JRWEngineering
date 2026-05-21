@@ -58,7 +58,7 @@ export default async function InvoiceDetailPage({
       ? `${client.contacts[0].firstName} ${client.contacts[0].lastName}`
       : "—";
 
-  const editable = invoice.status === "draft";
+  const editable = invoice.status === "draft" && !invoice.archivedAt;
 
   const lineItemsForClient = invoice.lineItems.map((item) => ({
     id: item.id,
@@ -88,8 +88,9 @@ export default async function InvoiceDetailPage({
             <p className="text-sm text-slate-500 mt-1">
               {formatDate(invoice.invoiceDate)}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <StatusBadge status={invoice.status} />
+              {invoice.archivedAt && <StatusBadge status="archived" />}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -193,6 +194,18 @@ export default async function InvoiceDetailPage({
         </div>
       )}
 
+      {invoice.archivedAt ? (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          This invoice&apos;s project is archived.{" "}
+          <Link
+            href={`/dashboard/projects/${invoice.projectId}`}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Unarchive the parent project →
+          </Link>{" "}
+          to make changes.
+        </div>
+      ) : (
       <div className="flex flex-wrap gap-3">
         {invoice.status === "draft" && (
           <form
@@ -255,6 +268,7 @@ export default async function InvoiceDetailPage({
           </form>
         )}
       </div>
+      )}
     </>
   );
 }

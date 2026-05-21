@@ -51,12 +51,23 @@ async function recomputeTotal(invoiceId: string): Promise<void> {
   });
 }
 
+async function assertNotArchived(invoiceId: string): Promise<void> {
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { archivedAt: true },
+  });
+  if (inv?.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
+  }
+}
+
 export async function updateInvoice(
   invoiceId: string,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
   await requireUser();
+  await assertNotArchived(invoiceId);
 
   const input = {
     invoiceDate: getString(formData, "invoiceDate"),
@@ -90,9 +101,12 @@ export async function deleteInvoice(invoiceId: string): Promise<void> {
   await requireUser();
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    select: { status: true, projectId: true },
+    select: { status: true, projectId: true, archivedAt: true },
   });
   if (!invoice) return;
+  if (invoice.archivedAt) {
+    throw new Error("Cannot modify — the parent project is archived.");
+  }
   if (invoice.status !== "draft" && invoice.status !== "cancelled") {
     throw new Error("Only draft or cancelled invoices can be deleted.");
   }
@@ -107,6 +121,7 @@ export async function setInvoiceStatus(
   status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
 ): Promise<void> {
   await requireUser();
+  await assertNotArchived(invoiceId);
 
   const data: {
     status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
@@ -138,6 +153,7 @@ export async function addLineItem(
   formData: FormData
 ): Promise<FormState> {
   await requireUser();
+  await assertNotArchived(invoiceId);
 
   const input = {
     service: getString(formData, "service"),
@@ -172,6 +188,7 @@ export async function updateLineItem(
   formData: FormData
 ): Promise<void> {
   await requireUser();
+  await assertNotArchived(invoiceId);
 
   const input = {
     service: getString(formData, "service"),
@@ -200,6 +217,7 @@ export async function deleteLineItem(
   lineItemId: string
 ): Promise<void> {
   await requireUser();
+  await assertNotArchived(invoiceId);
   await prisma.invoiceLineItem.delete({ where: { id: lineItemId } });
   await recomputeTotal(invoiceId);
   revalidatePath(`/dashboard/invoices/${invoiceId}`);

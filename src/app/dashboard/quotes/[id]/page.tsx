@@ -78,12 +78,13 @@ export default async function QuoteDetailPage({
               {quote.project.name}
             </h1>
             <p className="text-sm text-slate-500 mt-1">{formatDate(quote.date)}</p>
-            <div className="mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <StatusBadge status={quote.status} />
+              {quote.archivedAt && <StatusBadge status="archived" />}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {quote.status === "draft" && (
+            {quote.status === "draft" && !quote.archivedAt && (
               <>
                 <Link
                   href={`/dashboard/quotes/${quote.id}/edit`}
@@ -181,6 +182,18 @@ export default async function QuoteDetailPage({
         </div>
       )}
 
+      {quote.archivedAt ? (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          This quote&apos;s project is archived. {" "}
+          <Link
+            href={`/dashboard/projects/${quote.projectId}`}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Unarchive the parent project →
+          </Link>{" "}
+          to make changes.
+        </div>
+      ) : (
       <div className="flex flex-wrap gap-3">
         {quote.status === "draft" && (
           <form
@@ -251,6 +264,7 @@ export default async function QuoteDetailPage({
           </form>
         )}
       </div>
+      )}
     </>
   );
 }

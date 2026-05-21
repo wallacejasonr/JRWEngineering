@@ -78,15 +78,25 @@ export default async function QuotesPage({
   searchParams: Promise<ListSearchParams>;
 }) {
   const raw = await searchParams;
+  const viewRaw = typeof raw.view === "string" ? raw.view : undefined;
+  const view = viewRaw === "archived" ? "archived" : "active";
+
   const list = parseListParams<SortKey>(raw, {
     sortKeys: SORT_KEYS,
     defaultSort: "date",
     defaultDir: "desc",
   });
 
-  const where: Prisma.QuoteWhereInput = list.q ? searchWhere(list.q) : {};
+  const baseWhere: Prisma.QuoteWhereInput =
+    view === "archived"
+      ? { archivedAt: { not: null } }
+      : { archivedAt: null };
 
-  const [quotes, total] = await Promise.all([
+  const where: Prisma.QuoteWhereInput = list.q
+    ? { AND: [baseWhere, searchWhere(list.q)] }
+    : baseWhere;
+
+  const [quotes, total, activeCount, archivedCount] = await Promise.all([
     prisma.quote.findMany({
       where,
       orderBy: orderByFor(list.sort, list.dir),
@@ -105,10 +115,13 @@ export default async function QuotesPage({
       take: list.take,
     }),
     prisma.quote.count({ where }),
+    prisma.quote.count({ where: { archivedAt: null } }),
+    prisma.quote.count({ where: { archivedAt: { not: null } } }),
   ]);
 
   const pathname = "/dashboard/quotes";
   const currentForUrl = {
+    view: view === "active" ? undefined : "archived",
     q: list.q || undefined,
     sort: list.sort,
     dir: list.dir,
@@ -118,6 +131,17 @@ export default async function QuotesPage({
     buildListUrl(pathname, currentForUrl, p);
   const pageHrefFor = (p: { page: string }) =>
     buildListUrl(pathname, currentForUrl, { page: p.page });
+
+  const activeTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: null, page: null }
+  );
+  const archivedTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: "archived", page: null }
+  );
 
   return (
     <>
@@ -131,18 +155,45 @@ export default async function QuotesPage({
         </Link>
       </div>
 
+      <div className="flex gap-1 border-b border-slate-200 mb-4">
+        <Link
+          href={activeTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "active"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Active ({activeCount})
+        </Link>
+        <Link
+          href={archivedTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "archived"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Archived ({archivedCount})
+        </Link>
+      </div>
+
       <SearchForm
         action={pathname}
         q={list.q}
         placeholder="Search quote #, project, client…"
-        preserved={{ sort: list.sort, dir: list.dir }}
+        preserved={{
+          view: view === "active" ? undefined : "archived",
+          sort: list.sort,
+          dir: list.dir,
+        }}
       />
 
       {quotes.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
           {list.q ? (
             <p className="text-slate-500">No quotes match your search.</p>
-          ) : (
+          ) : view === "active" ? (
             <>
               <p className="text-slate-500 mb-4">No quotes yet.</p>
               <Link
@@ -152,6 +203,8 @@ export default async function QuotesPage({
                 Create your first quote →
               </Link>
             </>
+          ) : (
+            <p className="text-slate-500">No archived quotes.</p>
           )}
         </div>
       ) : (

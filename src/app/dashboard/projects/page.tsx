@@ -68,15 +68,25 @@ export default async function ProjectsPage({
   searchParams: Promise<ListSearchParams>;
 }) {
   const raw = await searchParams;
+  const viewRaw = typeof raw.view === "string" ? raw.view : undefined;
+  const view = viewRaw === "archived" ? "archived" : "active";
+
   const list = parseListParams<SortKey>(raw, {
     sortKeys: SORT_KEYS,
     defaultSort: "projectNumber",
     defaultDir: "desc",
   });
 
-  const where: Prisma.ProjectWhereInput = list.q ? searchWhere(list.q) : {};
+  const baseWhere: Prisma.ProjectWhereInput =
+    view === "archived"
+      ? { archivedAt: { not: null } }
+      : { archivedAt: null };
 
-  const [projects, total] = await Promise.all([
+  const where: Prisma.ProjectWhereInput = list.q
+    ? { AND: [baseWhere, searchWhere(list.q)] }
+    : baseWhere;
+
+  const [projects, total, activeCount, archivedCount] = await Promise.all([
     prisma.project.findMany({
       where,
       orderBy: orderByFor(list.sort, list.dir),
@@ -91,10 +101,13 @@ export default async function ProjectsPage({
       take: list.take,
     }),
     prisma.project.count({ where }),
+    prisma.project.count({ where: { archivedAt: null } }),
+    prisma.project.count({ where: { archivedAt: { not: null } } }),
   ]);
 
   const pathname = "/dashboard/projects";
   const currentForUrl = {
+    view: view === "active" ? undefined : "archived",
     q: list.q || undefined,
     sort: list.sort,
     dir: list.dir,
@@ -104,6 +117,17 @@ export default async function ProjectsPage({
     buildListUrl(pathname, currentForUrl, p);
   const pageHrefFor = (p: { page: string }) =>
     buildListUrl(pathname, currentForUrl, { page: p.page });
+
+  const activeTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: null, page: null }
+  );
+  const archivedTabHref = buildListUrl(
+    pathname,
+    { q: list.q || undefined, sort: list.sort, dir: list.dir },
+    { view: "archived", page: null }
+  );
 
   return (
     <>
@@ -117,18 +141,45 @@ export default async function ProjectsPage({
         </Link>
       </div>
 
+      <div className="flex gap-1 border-b border-slate-200 mb-4">
+        <Link
+          href={activeTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "active"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Active ({activeCount})
+        </Link>
+        <Link
+          href={archivedTabHref}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+            view === "archived"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Archived ({archivedCount})
+        </Link>
+      </div>
+
       <SearchForm
         action={pathname}
         q={list.q}
         placeholder="Search project #, name, client, service…"
-        preserved={{ sort: list.sort, dir: list.dir }}
+        preserved={{
+          view: view === "active" ? undefined : "archived",
+          sort: list.sort,
+          dir: list.dir,
+        }}
       />
 
       {projects.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
           {list.q ? (
             <p className="text-slate-500">No projects match your search.</p>
-          ) : (
+          ) : view === "active" ? (
             <>
               <p className="text-slate-500 mb-4">No projects yet.</p>
               <Link
@@ -138,6 +189,8 @@ export default async function ProjectsPage({
                 Create your first project →
               </Link>
             </>
+          ) : (
+            <p className="text-slate-500">No archived projects.</p>
           )}
         </div>
       ) : (

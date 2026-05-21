@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/StatusBadge";
 import FilesSection from "./FilesSection";
+import ArchiveActions from "./ArchiveActions";
 
 function formatMoney(value: { toNumber: () => number } | number | string): string {
   const n =
@@ -78,12 +79,27 @@ export default async function ProjectDetailPage({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href={`/dashboard/projects/${project.id}/edit`}
-              className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
-            >
-              Edit
-            </Link>
+            {!project.archivedAt && (
+              <Link
+                href={`/dashboard/projects/${project.id}/edit`}
+                className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
+              >
+                Edit
+              </Link>
+            )}
+            <ArchiveActions
+              projectId={project.id}
+              archived={!!project.archivedAt}
+              blockingInvoices={project.invoices
+                .filter(
+                  (i) => i.status !== "paid" && i.status !== "cancelled"
+                )
+                .map((i) => ({
+                  id: i.id,
+                  invoiceNumber: i.invoiceNumber,
+                  status: i.status,
+                }))}
+            />
           </div>
         </div>
 

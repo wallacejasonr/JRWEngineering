@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { updateProject } from "../../actions";
 import ProjectForm from "../../ProjectForm";
@@ -26,6 +26,7 @@ export default async function EditProjectPage({
   ]);
 
   if (!project) notFound();
+  if (project.archivedAt) redirect(`/dashboard/projects/${id}`);
 
   const action = updateProject.bind(null, project.id);
 

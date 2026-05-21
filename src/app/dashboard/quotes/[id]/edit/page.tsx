@@ -20,7 +20,9 @@ export default async function EditQuotePage({
   ]);
 
   if (!quote) notFound();
-  if (quote.status !== "draft") redirect(`/dashboard/quotes/${id}`);
+  if (quote.archivedAt || quote.status !== "draft") {
+    redirect(`/dashboard/quotes/${id}`);
+  }
 
   const action = updateQuote.bind(null, quote.id);
 
