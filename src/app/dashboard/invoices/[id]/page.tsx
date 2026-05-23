@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-helpers";
 import { StatusBadge } from "@/components/StatusBadge";
 import LineItemsSection from "./LineItemsSection";
 import { deleteInvoice, setInvoiceStatus } from "../actions";
@@ -27,6 +28,8 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const user = await requireUser();
+  const isAdmin = user.role === "admin";
 
   const invoice = await prisma.invoice.findUnique({
     where: { id },
@@ -102,16 +105,18 @@ export default async function InvoiceDetailPage({
                 >
                   Edit
                 </Link>
-                <form
-                  action={async () => {
-                    "use server";
-                    await deleteInvoice(invoice.id);
-                  }}
-                >
-                  <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
-                    Delete
-                  </button>
-                </form>
+                {isAdmin && (
+                  <form
+                    action={async () => {
+                      "use server";
+                      await deleteInvoice(invoice.id);
+                    }}
+                  >
+                    <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
+                      Delete
+                    </button>
+                  </form>
+                )}
               </>
             )}
             <a
@@ -243,7 +248,7 @@ export default async function InvoiceDetailPage({
             </button>
           </form>
         )}
-        {invoice.status !== "paid" && invoice.status !== "cancelled" && (
+        {isAdmin && invoice.status !== "paid" && invoice.status !== "cancelled" && (
           <form
             action={async () => {
               "use server";

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireAdmin, requireUser } from "@/lib/auth-helpers";
 import { nextInvoiceNumber, nextQuoteNumber } from "@/lib/numbering";
 import {
   type FormState,
@@ -154,7 +154,7 @@ export async function updateQuote(
 }
 
 export async function deleteQuote(quoteId: string): Promise<void> {
-  await requireUser();
+  await requireAdmin();
   const quote = await prisma.quote.findUnique({
     where: { id: quoteId },
     select: {

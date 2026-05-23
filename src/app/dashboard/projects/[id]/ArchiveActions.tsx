@@ -14,12 +14,19 @@ export default function ArchiveActions({
   projectId,
   archived,
   blockingInvoices,
+  isAdmin,
 }: {
   projectId: string;
   archived: boolean;
   blockingInvoices: BlockingInvoice[];
+  isAdmin: boolean;
 }) {
   const [showBlockers, setShowBlockers] = useState(false);
+
+  // Archiving/unarchiving is an admin-only action.
+  if (!isAdmin) {
+    return null;
+  }
 
   if (archived) {
     return (

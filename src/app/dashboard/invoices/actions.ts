@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireAdmin, requireUser } from "@/lib/auth-helpers";
 import {
   type FormState,
   getOptionalString,
@@ -98,7 +98,7 @@ export async function updateInvoice(
 }
 
 export async function deleteInvoice(invoiceId: string): Promise<void> {
-  await requireUser();
+  await requireAdmin();
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     select: { status: true, projectId: true, archivedAt: true },
@@ -120,7 +120,11 @@ export async function setInvoiceStatus(
   invoiceId: string,
   status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
 ): Promise<void> {
-  await requireUser();
+  if (status === "cancelled") {
+    await requireAdmin();
+  } else {
+    await requireUser();
+  }
   await assertNotArchived(invoiceId);
 
   const data: {

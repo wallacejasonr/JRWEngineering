@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-helpers";
 import { StatusBadge } from "@/components/StatusBadge";
 import FilesSection from "./FilesSection";
 import ArchiveActions from "./ArchiveActions";
@@ -30,6 +31,8 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const user = await requireUser();
+  const isAdmin = user.role === "admin";
 
   const project = await prisma.project.findUnique({
     where: { id },
@@ -90,6 +93,7 @@ export default async function ProjectDetailPage({
             <ArchiveActions
               projectId={project.id}
               archived={!!project.archivedAt}
+              isAdmin={isAdmin}
               blockingInvoices={project.invoices
                 .filter(
                   (i) => i.status !== "paid" && i.status !== "cancelled"

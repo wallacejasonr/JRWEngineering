@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireAdmin, requireUser } from "@/lib/auth-helpers";
 import { nextProjectNumber } from "@/lib/numbering";
 import {
   type FormState,
@@ -154,7 +154,7 @@ export async function updateProject(
 }
 
 export async function archiveProject(projectId: string): Promise<void> {
-  await requireUser();
+  await requireAdmin();
 
   const blockers = await prisma.invoice.findMany({
     where: {
@@ -198,7 +198,7 @@ export async function archiveProject(projectId: string): Promise<void> {
 }
 
 export async function unarchiveProject(projectId: string): Promise<void> {
-  await requireUser();
+  await requireAdmin();
 
   await prisma.$transaction([
     prisma.project.update({
@@ -225,7 +225,11 @@ export async function setProjectStatus(
   projectId: string,
   status: "active" | "completed" | "on_hold" | "archived"
 ): Promise<void> {
-  await requireUser();
+  if (status === "archived") {
+    await requireAdmin();
+  } else {
+    await requireUser();
+  }
   await prisma.project.update({
     where: { id: projectId },
     data: {

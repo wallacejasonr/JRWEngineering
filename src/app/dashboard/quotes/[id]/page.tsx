@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-helpers";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   convertQuoteToInvoice,
@@ -29,6 +30,8 @@ export default async function QuoteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const user = await requireUser();
+  const isAdmin = user.role === "admin";
 
   const quote = await prisma.quote.findUnique({
     where: { id },
@@ -92,16 +95,18 @@ export default async function QuoteDetailPage({
                 >
                   Edit
                 </Link>
-                <form
-                  action={async () => {
-                    "use server";
-                    await deleteQuote(quote.id);
-                  }}
-                >
-                  <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
-                    Delete
-                  </button>
-                </form>
+                {isAdmin && (
+                  <form
+                    action={async () => {
+                      "use server";
+                      await deleteQuote(quote.id);
+                    }}
+                  >
+                    <button className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-medium">
+                      Delete
+                    </button>
+                  </form>
+                )}
               </>
             )}
             <a
