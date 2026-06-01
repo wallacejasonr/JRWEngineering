@@ -127,6 +127,14 @@ export default async function InvoiceDetailPage({
             >
               PDF
             </a>
+            <a
+              href={`/api/invoices/${invoice.id}/calc-cover/pdf`}
+              target="_blank"
+              rel="noopener"
+              className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md font-medium"
+            >
+              Calc Cover Sheet
+            </a>
           </div>
         </div>
 
