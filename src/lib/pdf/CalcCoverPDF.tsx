@@ -133,13 +133,12 @@ export function CalcCoverPDF({
             at {company.phone}
           </Text>
           <Text style={coverStyles.bodyParagraph}>Sincerely,</Text>
-          {signatureImage && (
+          {signatureImage ? (
             <Image src={signatureImage} style={coverStyles.signatureImage} />
+          ) : (
+            <Text style={coverStyles.signature}>{signatureValue}</Text>
           )}
-          <Text style={coverStyles.signature}>{signatureValue}</Text>
         </View>
-
-        <View style={coverStyles.rule} />
       </Page>
     </Document>
   );
