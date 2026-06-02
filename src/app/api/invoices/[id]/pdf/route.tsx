@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { InvoicePDF } from "@/lib/pdf/InvoicePDF";
 import { getCompanyProfile } from "@/lib/pdf/company";
+import { buildPdfFilename } from "@/lib/pdf/filename";
 
 export async function GET(
   _request: Request,
@@ -80,7 +81,11 @@ export async function GET(
     />
   );
 
-  const filename = `${invoice.invoiceNumber}.pdf`;
+  const filename = buildPdfFilename({
+    projectName: invoice.project.name,
+    type: "Invoice",
+    number: invoice.invoiceNumber,
+  });
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {

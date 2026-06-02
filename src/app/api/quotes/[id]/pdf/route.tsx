@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { QuotePDF } from "@/lib/pdf/QuotePDF";
 import { getCompanyProfile } from "@/lib/pdf/company";
+import { buildPdfFilename } from "@/lib/pdf/filename";
 
 export async function GET(
   _request: Request,
@@ -71,7 +72,11 @@ export async function GET(
     />
   );
 
-  const filename = `${quote.quoteNumber}.pdf`;
+  const filename = buildPdfFilename({
+    projectName: quote.project.name,
+    type: "Quote",
+    number: quote.quoteNumber,
+  });
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {

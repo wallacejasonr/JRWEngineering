@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CalcCoverPDF } from "@/lib/pdf/CalcCoverPDF";
 import { getCompanyProfile } from "@/lib/pdf/company";
+import { buildPdfFilename } from "@/lib/pdf/filename";
 
 async function loadSignature(): Promise<Buffer | undefined> {
   try {
@@ -13,13 +14,6 @@ async function loadSignature(): Promise<Buffer | undefined> {
   } catch {
     return undefined;
   }
-}
-
-function sanitizeFilename(name: string): string {
-  return name
-    .replace(/[^A-Za-z0-9-_ ]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 export async function GET(
@@ -81,8 +75,10 @@ export async function GET(
     />
   );
 
-  const safeProjectName = sanitizeFilename(invoice.project.name) || "Project";
-  const filename = `${safeProjectName} Calcs Cover.pdf`;
+  const filename = buildPdfFilename({
+    projectName: invoice.project.name,
+    type: "Calcs Cover",
+  });
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
