@@ -65,8 +65,8 @@ const coverStyles = StyleSheet.create({
   signatureImage: {
     marginTop: 8,
     marginBottom: -4,
-    width: 200,
-    height: 60,
+    width: 320,
+    height: 100,
     objectFit: "contain",
   },
   signature: {
