@@ -54,8 +54,6 @@ export async function GET(
         invoiceNumber: invoice.invoiceNumber,
         invoiceDate: invoice.invoiceDate,
         invoiceService: invoice.invoiceService,
-        billingFrom: invoice.billingFrom,
-        billingTo: invoice.billingTo,
         total: invoice.total.toNumber(),
         notes: invoice.notes,
         lineItems: invoice.lineItems.map((item) => ({

@@ -29,17 +29,6 @@ const lineItemStyles = StyleSheet.create({
     borderColor: colors.border,
     paddingVertical: 6,
   },
-  emptyRow: {
-    flexDirection: "row",
-    borderBottomWidth: 0.5,
-    borderColor: colors.border,
-    height: 22,
-  },
-  totalRow: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    backgroundColor: colors.bannerLight,
-  },
   cellService: { width: "26%", paddingHorizontal: 4 },
   cellPhase: { width: "26%", paddingHorizontal: 4 },
   cellContract: { width: "16%", paddingHorizontal: 4, textAlign: "right" },
@@ -64,8 +53,6 @@ type InvoiceData = {
   invoiceNumber: string;
   invoiceDate: Date;
   invoiceService: string;
-  billingFrom: Date | null;
-  billingTo: Date | null;
   total: number;
   notes: string | null;
   lineItems: {
@@ -95,8 +82,6 @@ export function InvoicePDF({
   company: Company;
   invoice: InvoiceData;
 }) {
-  const filler = Math.max(0, 4 - invoice.lineItems.length);
-
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
@@ -106,10 +91,11 @@ export function InvoicePDF({
         <Text style={styles.date}>{formatDateLong(invoice.invoiceDate)}</Text>
 
         <View style={styles.recipient}>
-          <Text style={styles.recipientLine}>{invoice.recipient.name}</Text>
-          {invoice.recipient.title && (
-            <Text style={styles.recipientLine}>{invoice.recipient.title}</Text>
-          )}
+          <Text style={styles.recipientLine}>
+            {invoice.recipient.title
+              ? `${invoice.recipient.name}, ${invoice.recipient.title}`
+              : invoice.recipient.name}
+          </Text>
           {invoice.recipient.company && (
             <Text style={styles.recipientLine}>{invoice.recipient.company}</Text>
           )}
@@ -129,20 +115,11 @@ export function InvoicePDF({
             label="Invoice Date"
             value={formatDateShort(invoice.invoiceDate)}
           />
-          <InfoRow
-            label="Billing From"
-            value={invoice.billingFrom ? formatDateShort(invoice.billingFrom) : ""}
-          />
-          <InfoRow
-            label="Billing To"
-            value={invoice.billingTo ? formatDateShort(invoice.billingTo) : ""}
-          />
         </View>
 
         <Text style={{ marginTop: 14 }}>
           {invoice.recipient.name.split(" ")[0]},
         </Text>
-        <Text>Please see the full invoice amount below.</Text>
 
         <SectionBanner text="Current Invoice" />
 
@@ -158,7 +135,7 @@ export function InvoicePDF({
               Contract Amt
             </Text>
             <Text style={[lineItemStyles.cellPct, lineItemStyles.headerCell]}>
-              % Complete
+              %
             </Text>
             <Text style={[lineItemStyles.cellAmt, lineItemStyles.headerCell]}>
               Invoice Amount
@@ -178,33 +155,6 @@ export function InvoicePDF({
               </Text>
             </View>
           ))}
-
-          {Array.from({ length: filler }).map((_, i) => (
-            <View key={`empty-${i}`} style={lineItemStyles.emptyRow} />
-          ))}
-
-          <View style={lineItemStyles.totalRow}>
-            <Text
-              style={[
-                {
-                  width: "80%",
-                  paddingHorizontal: 4,
-                  textAlign: "right",
-                  fontFamily: "Helvetica-Bold",
-                },
-              ]}
-            >
-              Total of Services Provided:
-            </Text>
-            <Text
-              style={[
-                lineItemStyles.cellAmt,
-                { fontFamily: "Helvetica-Bold" },
-              ]}
-            >
-              {formatMoney(invoice.total)}
-            </Text>
-          </View>
         </View>
 
         <Text style={{ marginTop: 10 }}>

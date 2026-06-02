@@ -15,8 +15,6 @@ import {
 
 const InvoiceMetaSchema = z.object({
   invoiceDate: z.coerce.date(),
-  billingFrom: z.union([z.coerce.date(), z.null()]),
-  billingTo: z.union([z.coerce.date(), z.null()]),
   dueDate: z.union([z.coerce.date(), z.null()]),
   invoiceService: z.string().min(1, "Service is required").max(200),
   notes: z.string().max(5000).nullable(),
@@ -71,8 +69,6 @@ export async function updateInvoice(
 
   const input = {
     invoiceDate: getString(formData, "invoiceDate"),
-    billingFrom: dateOrNull(getString(formData, "billingFrom")),
-    billingTo: dateOrNull(getString(formData, "billingTo")),
     dueDate: dateOrNull(getString(formData, "dueDate")),
     invoiceService: getString(formData, "invoiceService"),
     notes: getOptionalString(formData, "notes"),

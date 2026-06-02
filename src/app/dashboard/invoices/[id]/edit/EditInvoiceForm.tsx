@@ -8,8 +8,6 @@ import { updateInvoice } from "../../actions";
 type Defaults = {
   invoiceId: string;
   invoiceDate: string;
-  billingFrom: string;
-  billingTo: string;
   dueDate: string;
   invoiceService: string;
   notes: string | null;
@@ -56,25 +54,6 @@ export default function EditInvoiceForm({ defaults }: { defaults: Defaults }) {
           className={inputClass}
         />
       </Field>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Billing From" name="billingFrom" optional state={state}>
-          <input
-            name="billingFrom"
-            type="date"
-            defaultValue={defaults.billingFrom}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="Billing To" name="billingTo" optional state={state}>
-          <input
-            name="billingTo"
-            type="date"
-            defaultValue={defaults.billingTo}
-            className={inputClass}
-          />
-        </Field>
-      </div>
 
       <Field label="Notes" name="notes" optional state={state}>
         <textarea

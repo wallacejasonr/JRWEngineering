@@ -37,8 +37,6 @@ export default async function EditInvoicePage({
           defaults={{
             invoiceId: invoice.id,
             invoiceDate: dateInputValue(invoice.invoiceDate),
-            billingFrom: dateInputValue(invoice.billingFrom),
-            billingTo: dateInputValue(invoice.billingTo),
             dueDate: dateInputValue(invoice.dueDate),
             invoiceService: invoice.invoiceService,
             notes: invoice.notes,

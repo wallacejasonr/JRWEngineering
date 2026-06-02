@@ -13,8 +13,8 @@ export const colors = {
 
 export const styles = StyleSheet.create({
   page: {
-    paddingTop: 50,
-    paddingBottom: 50,
+    paddingTop: 40,
+    paddingBottom: 36,
     paddingHorizontal: 60,
     fontSize: 10.5,
     fontFamily: "Helvetica",
@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   companyBlock: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   companyName: {
     fontFamily: "Helvetica-Bold",
@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
   recipient: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   recipientLine: {
     marginBottom: 0,
@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderLeftWidth: 0.5,
     borderColor: colors.black,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   infoRow: {
     flexDirection: "row",
@@ -80,28 +80,28 @@ export const styles = StyleSheet.create({
   },
   infoLabel: {
     width: 130,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
     fontFamily: "Helvetica-BoldOblique",
     backgroundColor: "transparent",
   },
   infoLabelTan: {
     width: 130,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
     fontFamily: "Helvetica-BoldOblique",
     backgroundColor: colors.tan,
   },
   infoValue: {
     flex: 1,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
     borderLeftWidth: 0.5,
     borderColor: colors.black,
   },
   infoValueTan: {
     flex: 1,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
     borderLeftWidth: 0.5,
     borderColor: colors.black,
@@ -112,7 +112,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bannerLight,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    marginVertical: 14,
+    marginVertical: 10,
   },
   sectionBannerText: {
     fontFamily: "Helvetica-Bold",
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
   signature: {
-    marginTop: 18,
+    marginTop: 14,
     fontFamily: "Helvetica-Bold",
   },
   footerBanner: {

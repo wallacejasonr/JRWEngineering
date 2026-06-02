@@ -165,14 +165,6 @@ export default async function InvoiceDetailPage({
             <span className="font-medium text-slate-500">Service:</span>{" "}
             <span className="text-slate-700">{invoice.invoiceService}</span>
           </div>
-          {(invoice.billingFrom || invoice.billingTo) && (
-            <div className="sm:col-span-2">
-              <span className="font-medium text-slate-500">Billing Period:</span>{" "}
-              <span className="text-slate-700">
-                {formatDate(invoice.billingFrom)} &mdash; {formatDate(invoice.billingTo)}
-              </span>
-            </div>
-          )}
           {invoice.dueDate && (
             <div>
               <span className="font-medium text-slate-500">Due:</span>{" "}
