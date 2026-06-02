@@ -1,4 +1,11 @@
-import { Document, Page, StyleSheet, View, Text } from "@react-pdf/renderer";
+import {
+  Document,
+  Image,
+  Page,
+  StyleSheet,
+  View,
+  Text,
+} from "@react-pdf/renderer";
 import { colors, formatDateShort, styles } from "./shared";
 
 type Company = {
@@ -55,18 +62,27 @@ const coverStyles = StyleSheet.create({
   bodyParagraph: {
     marginBottom: 10,
   },
+  signatureImage: {
+    marginTop: 8,
+    marginBottom: -4,
+    width: 200,
+    height: 60,
+    objectFit: "contain",
+  },
   signature: {
     fontFamily: "Helvetica-Bold",
-    marginTop: 36,
+    marginTop: 8,
   },
 });
 
 export function CalcCoverPDF({
   company,
   cover,
+  signatureImage,
 }: {
   company: Company;
   cover: CoverData;
+  signatureImage?: Buffer;
 }) {
   const toValue = cover.recipient.company
     ? `${cover.recipient.name} - ${cover.recipient.company}`
@@ -117,6 +133,9 @@ export function CalcCoverPDF({
             at {company.phone}
           </Text>
           <Text style={coverStyles.bodyParagraph}>Sincerely,</Text>
+          {signatureImage && (
+            <Image src={signatureImage} style={coverStyles.signatureImage} />
+          )}
           <Text style={coverStyles.signature}>{signatureValue}</Text>
         </View>
 

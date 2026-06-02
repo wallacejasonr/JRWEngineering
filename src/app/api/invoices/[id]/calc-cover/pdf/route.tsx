@@ -1,9 +1,19 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CalcCoverPDF } from "@/lib/pdf/CalcCoverPDF";
 import { getCompanyProfile } from "@/lib/pdf/company";
+
+async function loadSignature(): Promise<Buffer | undefined> {
+  try {
+    return await readFile(path.join(process.cwd(), "public", "signature.png"));
+  } catch {
+    return undefined;
+  }
+}
 
 function sanitizeFilename(name: string): string {
   return name
@@ -22,7 +32,7 @@ export async function GET(
   }
 
   const { id } = await params;
-  const [invoice, company] = await Promise.all([
+  const [invoice, company, signatureImage] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
       include: {
@@ -42,6 +52,7 @@ export async function GET(
       },
     }),
     getCompanyProfile(),
+    loadSignature(),
   ]);
 
   if (!invoice) {
@@ -55,6 +66,7 @@ export async function GET(
   const buffer = await renderToBuffer(
     <CalcCoverPDF
       company={company}
+      signatureImage={signatureImage}
       cover={{
         projectName: invoice.project.name,
         date: new Date(),
