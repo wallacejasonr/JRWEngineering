@@ -52,6 +52,11 @@ export async function GET(
         quoteNumber: quote.quoteNumber,
         date: quote.date,
         fee: quote.fee.toNumber(),
+        feeSchedule: {
+          siteVisitRate: quote.siteVisitRate.toNumber(),
+          additionalHourlyRate: quote.additionalHourlyRate.toNumber(),
+          reportRate: quote.reportRate.toNumber(),
+        },
         inclusions: quote.inclusions,
         exclusions: quote.exclusions,
         billingTerms: quote.billingTerms,

@@ -9,6 +9,7 @@ import {
   formatMoney,
   styles,
 } from "./shared";
+import { SsiFeeSchedulePages } from "./SsiFeeSchedule";
 
 type Company = {
   companyName: string;
@@ -29,6 +30,11 @@ type QuoteData = {
   inclusions: string[];
   exclusions: string[];
   billingTerms: string;
+  feeSchedule: {
+    siteVisitRate: number;
+    additionalHourlyRate: number;
+    reportRate: number;
+  };
   project: {
     projectNumber: string;
     name: string;
@@ -112,6 +118,7 @@ export function QuotePDF({
 
         <FooterBanner />
       </Page>
+      <SsiFeeSchedulePages rates={quote.feeSchedule} />
     </Document>
   );
 }

@@ -20,6 +20,9 @@ const QuoteSchema = z.object({
   inclusions: z.array(z.string().min(1)),
   exclusions: z.array(z.string().min(1)),
   fee: z.coerce.number().nonnegative("Fee must be 0 or greater"),
+  siteVisitRate: z.coerce.number().nonnegative("Site visit rate must be 0 or greater"),
+  additionalHourlyRate: z.coerce.number().nonnegative("Additional hourly rate must be 0 or greater"),
+  reportRate: z.coerce.number().nonnegative("Report rate must be 0 or greater"),
   billingTerms: z.string().min(1, "Billing terms are required").max(2000),
   notes: z.string().max(5000).nullable(),
 });
@@ -44,6 +47,9 @@ export async function createQuote(
     inclusions: parseListField(formData, "inclusions"),
     exclusions: parseListField(formData, "exclusions"),
     fee: getString(formData, "fee").replace(/[^0-9.]/g, ""),
+    siteVisitRate: getString(formData, "siteVisitRate").replace(/[^0-9.]/g, ""),
+    additionalHourlyRate: getString(formData, "additionalHourlyRate").replace(/[^0-9.]/g, ""),
+    reportRate: getString(formData, "reportRate").replace(/[^0-9.]/g, ""),
     billingTerms: getString(formData, "billingTerms"),
     notes: getOptionalString(formData, "notes"),
   };
@@ -115,6 +121,9 @@ export async function updateQuote(
     inclusions: parseListField(formData, "inclusions"),
     exclusions: parseListField(formData, "exclusions"),
     fee: getString(formData, "fee").replace(/[^0-9.]/g, ""),
+    siteVisitRate: getString(formData, "siteVisitRate").replace(/[^0-9.]/g, ""),
+    additionalHourlyRate: getString(formData, "additionalHourlyRate").replace(/[^0-9.]/g, ""),
+    reportRate: getString(formData, "reportRate").replace(/[^0-9.]/g, ""),
     billingTerms: getString(formData, "billingTerms"),
     notes: getOptionalString(formData, "notes"),
   };

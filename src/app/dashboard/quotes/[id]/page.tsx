@@ -175,6 +175,28 @@ export default async function QuoteDetailPage({
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
         <h2 className="text-lg font-semibold text-slate-900 mb-2">Fee</h2>
         <p className="text-3xl font-bold text-slate-900">{formatMoney(quote.fee)}</p>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <div>
+            <span className="font-medium text-slate-500">Site Visit Rate:</span>{" "}
+            <span className="text-slate-900">
+              {formatMoney(quote.siteVisitRate)}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-slate-500">
+              Additional Hourly Rate:
+            </span>{" "}
+            <span className="text-slate-900">
+              {formatMoney(quote.additionalHourlyRate)}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-slate-500">Report Rate:</span>{" "}
+            <span className="text-slate-900">
+              {formatMoney(quote.reportRate)}
+            </span>
+          </div>
+        </div>
         <p className="text-sm text-slate-500 mt-3 whitespace-pre-wrap">
           {quote.billingTerms}
         </p>

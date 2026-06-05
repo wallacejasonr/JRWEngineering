@@ -61,6 +61,9 @@ export default async function NewQuotePage({
               inclusions: [],
               exclusions: [],
               fee: "",
+              siteVisitRate: "150",
+              additionalHourlyRate: "150",
+              reportRate: "350",
               billingTerms:
                 "Project will be billed 100% at time of submission.",
               notes: null,

@@ -17,6 +17,9 @@ type Defaults = {
   inclusions: string[];
   exclusions: string[];
   fee: string;
+  siteVisitRate: string;
+  additionalHourlyRate: string;
+  reportRate: string;
   billingTerms: string;
   notes: string | null;
 };
@@ -122,6 +125,64 @@ export default function QuoteForm({
           />
         </div>
       </Field>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Field label="Site Visit Rate" name="siteVisitRate" state={state}>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+              $
+            </span>
+            <input
+              name="siteVisitRate"
+              type="number"
+              step="1"
+              min="0"
+              required
+              defaultValue={defaults.siteVisitRate}
+              className={`${inputClass} pl-7`}
+              placeholder="0"
+            />
+          </div>
+        </Field>
+        <Field
+          label="Additional Hourly Rate"
+          name="additionalHourlyRate"
+          state={state}
+        >
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+              $
+            </span>
+            <input
+              name="additionalHourlyRate"
+              type="number"
+              step="1"
+              min="0"
+              required
+              defaultValue={defaults.additionalHourlyRate}
+              className={`${inputClass} pl-7`}
+              placeholder="0"
+            />
+          </div>
+        </Field>
+        <Field label="Report Rate" name="reportRate" state={state}>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+              $
+            </span>
+            <input
+              name="reportRate"
+              type="number"
+              step="1"
+              min="0"
+              required
+              defaultValue={defaults.reportRate}
+              className={`${inputClass} pl-7`}
+              placeholder="0"
+            />
+          </div>
+        </Field>
+      </div>
 
       <Field label="Billing Terms" name="billingTerms" state={state}>
         <textarea

@@ -52,6 +52,9 @@ export default async function EditQuotePage({
             inclusions: quote.inclusions,
             exclusions: quote.exclusions,
             fee: quote.fee.toString(),
+            siteVisitRate: quote.siteVisitRate.toString(),
+            additionalHourlyRate: quote.additionalHourlyRate.toString(),
+            reportRate: quote.reportRate.toString(),
             billingTerms: quote.billingTerms,
             notes: quote.notes,
           }}

@@ -199,6 +199,9 @@ model Quote {
   inclusions   String[]    // list of included services
   exclusions   String[]    // list of excluded items
   fee          Decimal     @db.Decimal(10, 2)
+  siteVisitRate        Decimal     @db.Decimal(10, 2) @default(150)
+  additionalHourlyRate Decimal     @db.Decimal(10, 2) @default(150)
+  reportRate           Decimal     @db.Decimal(10, 2) @default(350)
   billingTerms String      // e.g. "Project will be billed 100% at time of submission"
   status       QuoteStatus @default(draft)
   notes        String?     @db.Text
