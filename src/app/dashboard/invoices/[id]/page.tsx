@@ -73,9 +73,7 @@ export default async function InvoiceDetailPage({
   }));
 
   const canRecordPayment =
-    !invoice.archivedAt &&
-    invoice.status !== "draft" &&
-    invoice.status !== "cancelled";
+    !invoice.archivedAt && invoice.status !== "cancelled";
   const canDeletePayment = isAdmin && !invoice.archivedAt;
 
   const todayIso = new Date().toISOString().slice(0, 10);

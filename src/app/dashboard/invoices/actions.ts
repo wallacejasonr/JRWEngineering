@@ -202,10 +202,10 @@ export async function recordPayment(
     select: { status: true },
   });
   if (!inv) return { ok: false, message: "Invoice not found." };
-  if (inv.status === "draft" || inv.status === "cancelled") {
+  if (inv.status === "cancelled") {
     return {
       ok: false,
-      message: "Cannot record a payment on a draft or cancelled invoice.",
+      message: "Cannot record a payment on a cancelled invoice.",
     };
   }
 
@@ -224,6 +224,13 @@ export async function recordPayment(
       message: "Please fix the errors below.",
       fieldErrors: zodErrorsToFieldErrors(parse.error.issues),
     };
+  }
+
+  if (inv.status === "draft") {
+    await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: { status: "sent", sentAt: parse.data.receivedDate },
+    });
   }
 
   await prisma.payment.create({
