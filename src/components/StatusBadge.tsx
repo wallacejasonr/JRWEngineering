@@ -13,6 +13,7 @@ const STYLES: Record<string, string> = {
   paid: "bg-green-100 text-green-700",
   overdue: "bg-red-100 text-red-700",
   cancelled: "bg-slate-100 text-slate-500",
+  partial: "bg-amber-100 text-amber-700",
 };
 
 export function StatusBadge({ status }: { status: string }) {

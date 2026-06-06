@@ -54,6 +54,7 @@ type InvoiceData = {
   invoiceDate: Date;
   invoiceService: string;
   total: number;
+  paidSum: number;
   notes: string | null;
   lineItems: {
     service: string;
@@ -82,6 +83,8 @@ export function InvoicePDF({
   company: Company;
   invoice: InvoiceData;
 }) {
+  const balance = Math.max(0, invoice.total - invoice.paidSum);
+  const showPaid = invoice.paidSum > 0;
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
@@ -157,10 +160,35 @@ export function InvoicePDF({
           ))}
         </View>
 
+        <View style={{ marginTop: 12, alignItems: "flex-end" }}>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, textAlign: "right", paddingRight: 8 }}>Subtotal:</Text>
+            <Text style={{ width: 90, textAlign: "right", fontFamily: "Helvetica-Bold" }}>
+              {formatMoney(invoice.total)}
+            </Text>
+          </View>
+          {showPaid && (
+            <View style={{ flexDirection: "row", marginTop: 2 }}>
+              <Text style={{ width: 120, textAlign: "right", paddingRight: 8 }}>Payments Received:</Text>
+              <Text style={{ width: 90, textAlign: "right" }}>
+                -{formatMoney(invoice.paidSum)}
+              </Text>
+            </View>
+          )}
+          <View style={{ flexDirection: "row", marginTop: 4, paddingTop: 4, borderTopWidth: 0.5, borderColor: colors.black }}>
+            <Text style={{ width: 120, textAlign: "right", paddingRight: 8, fontFamily: "Helvetica-Bold" }}>
+              Balance Due:
+            </Text>
+            <Text style={{ width: 90, textAlign: "right", fontFamily: "Helvetica-Bold" }}>
+              {formatMoney(balance)}
+            </Text>
+          </View>
+        </View>
+
         <Text style={{ marginTop: 10 }}>
-          Please provide a check made out to {company.companyName} in the amount
-          of {formatMoney(invoice.total)} and forward it to my address noted
-          above. It was a pleasure working with you on this project.
+          {balance > 0
+            ? `Please provide a check made out to ${company.companyName} in the amount of ${formatMoney(balance)} and forward it to my address noted above. It was a pleasure working with you on this project.`
+            : `Thank you for your payment. It was a pleasure working with you on this project.`}
         </Text>
 
         {invoice.notes && (

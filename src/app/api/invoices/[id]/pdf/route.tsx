@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { InvoicePDF } from "@/lib/pdf/InvoicePDF";
 import { getCompanyProfile } from "@/lib/pdf/company";
 import { buildPdfFilename } from "@/lib/pdf/filename";
@@ -34,6 +35,7 @@ export async function GET(
           },
         },
         lineItems: { orderBy: { sortOrder: "asc" } },
+        payments: { select: { amount: true } },
       },
     }),
     getCompanyProfile(),
@@ -42,6 +44,11 @@ export async function GET(
   if (!invoice) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const paidSum = invoice.payments.reduce(
+    (sum, p) => sum.plus(p.amount),
+    new Prisma.Decimal(0)
+  );
 
   const contact =
     invoice.project.primaryContact ??
@@ -56,6 +63,7 @@ export async function GET(
         invoiceDate: invoice.invoiceDate,
         invoiceService: invoice.invoiceService,
         total: invoice.total.toNumber(),
+        paidSum: paidSum.toNumber(),
         notes: invoice.notes,
         lineItems: invoice.lineItems.map((item) => ({
           service: item.service,

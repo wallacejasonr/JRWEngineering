@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Prisma } from "@/generated/prisma/client";
+import { InvoiceStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireUser } from "@/lib/auth-helpers";
 import {
@@ -28,6 +28,14 @@ const LineItemSchema = z.object({
   invoiceAmount: z.coerce.number().nonnegative(),
 });
 
+const PaymentSchema = z.object({
+  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  receivedDate: z.coerce.date(),
+  method: z.enum(["check", "ach", "cash", "card", "other"]),
+  reference: z.string().max(100).nullable(),
+  notes: z.string().max(2000).nullable(),
+});
+
 function dateOrNull(value: string): Date | null {
   if (!value) return null;
   const d = new Date(value);
@@ -46,6 +54,41 @@ async function recomputeTotal(invoiceId: string): Promise<void> {
   await prisma.invoice.update({
     where: { id: invoiceId },
     data: { total },
+  });
+}
+
+async function recomputeInvoiceStatus(invoiceId: string): Promise<void> {
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { status: true, total: true, dueDate: true },
+  });
+  if (!inv) return;
+  if (inv.status === "draft" || inv.status === "cancelled") return;
+
+  const agg = await prisma.payment.aggregate({
+    where: { invoiceId },
+    _sum: { amount: true },
+    _max: { receivedDate: true },
+  });
+  const sum = agg._sum.amount ?? new Prisma.Decimal(0);
+  const total = inv.total;
+
+  let nextStatus: InvoiceStatus;
+  let paidAt: Date | null = null;
+  if (sum.gte(total) && total.gt(0)) {
+    nextStatus = "paid";
+    paidAt = agg._max.receivedDate ?? new Date();
+  } else if (sum.gt(0)) {
+    nextStatus = "partial";
+  } else if (inv.dueDate && inv.dueDate < new Date()) {
+    nextStatus = "overdue";
+  } else {
+    nextStatus = "sent";
+  }
+
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: { status: nextStatus, paidAt },
   });
 }
 
@@ -114,7 +157,7 @@ export async function deleteInvoice(invoiceId: string): Promise<void> {
 
 export async function setInvoiceStatus(
   invoiceId: string,
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+  status: "draft" | "sent" | "overdue" | "cancelled"
 ): Promise<void> {
   if (status === "cancelled") {
     await requireAdmin();
@@ -124,13 +167,12 @@ export async function setInvoiceStatus(
   await assertNotArchived(invoiceId);
 
   const data: {
-    status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+    status: "draft" | "sent" | "overdue" | "cancelled";
     sentAt?: Date | null;
     paidAt?: Date | null;
   } = { status };
 
   if (status === "sent") data.sentAt = new Date();
-  if (status === "paid") data.paidAt = new Date();
   if (status === "draft") {
     data.sentAt = null;
     data.paidAt = null;
@@ -145,6 +187,64 @@ export async function setInvoiceStatus(
   revalidatePath("/dashboard/invoices");
   revalidatePath(`/dashboard/invoices/${invoiceId}`);
   revalidatePath(`/dashboard/projects/${updated.projectId}`);
+}
+
+export async function recordPayment(
+  invoiceId: string,
+  _prev: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  await assertNotArchived(invoiceId);
+
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { status: true },
+  });
+  if (!inv) return { ok: false, message: "Invoice not found." };
+  if (inv.status === "draft" || inv.status === "cancelled") {
+    return {
+      ok: false,
+      message: "Cannot record a payment on a draft or cancelled invoice.",
+    };
+  }
+
+  const input = {
+    amount: getString(formData, "amount").replace(/[^0-9.]/g, ""),
+    receivedDate: getString(formData, "receivedDate"),
+    method: getString(formData, "method"),
+    reference: getOptionalString(formData, "reference"),
+    notes: getOptionalString(formData, "notes"),
+  };
+
+  const parse = PaymentSchema.safeParse(input);
+  if (!parse.success) {
+    return {
+      ok: false,
+      message: "Please fix the errors below.",
+      fieldErrors: zodErrorsToFieldErrors(parse.error.issues),
+    };
+  }
+
+  await prisma.payment.create({
+    data: { ...parse.data, invoiceId, recordedById: user.id },
+  });
+
+  await recomputeInvoiceStatus(invoiceId);
+  revalidatePath(`/dashboard/invoices/${invoiceId}`);
+  revalidatePath("/dashboard/invoices");
+  return { ok: true, message: "Payment recorded." };
+}
+
+export async function deletePayment(
+  invoiceId: string,
+  paymentId: string
+): Promise<void> {
+  await requireAdmin();
+  await assertNotArchived(invoiceId);
+  await prisma.payment.delete({ where: { id: paymentId } });
+  await recomputeInvoiceStatus(invoiceId);
+  revalidatePath(`/dashboard/invoices/${invoiceId}`);
 }
 
 export async function addLineItem(

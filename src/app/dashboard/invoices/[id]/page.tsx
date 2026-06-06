@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { StatusBadge } from "@/components/StatusBadge";
 import LineItemsSection from "./LineItemsSection";
+import PaymentsSection from "./PaymentsSection";
 import { deleteInvoice, setInvoiceStatus } from "../actions";
+import { Prisma } from "@/generated/prisma/client";
 
 function formatMoney(value: { toNumber: () => number }): string {
   return value.toNumber().toLocaleString("en-US", {
@@ -44,10 +46,40 @@ export default async function InvoiceDetailPage({
       },
       quote: { select: { id: true, quoteNumber: true } },
       lineItems: { orderBy: { sortOrder: "asc" } },
+      payments: { orderBy: { receivedDate: "desc" } },
     },
   });
 
   if (!invoice) notFound();
+
+  const paidSum = invoice.payments.reduce(
+    (sum, p) => sum.plus(p.amount),
+    new Prisma.Decimal(0)
+  );
+  const balanceDecimal = Prisma.Decimal.max(0, invoice.total.minus(paidSum));
+
+  const paymentsForClient = invoice.payments.map((p) => ({
+    id: p.id,
+    amount: p.amount.toString(),
+    receivedDateInputValue: p.receivedDate.toISOString().slice(0, 10),
+    receivedDateDisplay: p.receivedDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    method: p.method,
+    reference: p.reference,
+    notes: p.notes,
+  }));
+
+  const canRecordPayment =
+    !invoice.archivedAt &&
+    invoice.status !== "draft" &&
+    invoice.status !== "cancelled";
+  const canDeletePayment = isAdmin && !invoice.archivedAt;
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const defaultAmount = balanceDecimal.gt(0) ? balanceDecimal.toFixed(2) : "";
 
   const client = invoice.project.client;
   const clientLabel =
@@ -94,6 +126,12 @@ export default async function InvoiceDetailPage({
             <div className="mt-2 flex items-center gap-2">
               <StatusBadge status={invoice.status} />
               {invoice.archivedAt && <StatusBadge status="archived" />}
+              {invoice.status === "partial" && (
+                <span className="text-xs text-slate-500">
+                  {formatMoney(invoice.total.minus(balanceDecimal))} of{" "}
+                  {formatMoney(invoice.total)} received
+                </span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -192,6 +230,18 @@ export default async function InvoiceDetailPage({
         editable={editable}
       />
 
+      <PaymentsSection
+        invoiceId={invoice.id}
+        payments={paymentsForClient}
+        paidSum={paidSum.toString()}
+        total={invoice.total.toString()}
+        balanceDue={balanceDecimal.toString()}
+        defaultAmount={defaultAmount}
+        defaultReceivedDate={todayIso}
+        canRecord={canRecordPayment}
+        canDelete={canDeletePayment}
+      />
+
       {invoice.notes && (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Notes</h2>
@@ -221,18 +271,6 @@ export default async function InvoiceDetailPage({
           >
             <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
               Mark as Sent
-            </button>
-          </form>
-        )}
-        {(invoice.status === "sent" || invoice.status === "overdue") && (
-          <form
-            action={async () => {
-              "use server";
-              await setInvoiceStatus(invoice.id, "paid");
-            }}
-          >
-            <button className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
-              Mark Paid
             </button>
           </form>
         )}
