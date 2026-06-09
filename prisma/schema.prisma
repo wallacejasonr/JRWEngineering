@@ -212,6 +212,8 @@ model Quote {
   siteVisitRate        Decimal     @db.Decimal(10, 2) @default(150)
   additionalHourlyRate Decimal     @db.Decimal(10, 2) @default(150)
   reportRate           Decimal     @db.Decimal(10, 2) @default(350)
+  includeTypicalSsiMatrix  Boolean @default(false)
+  includeConcreteSsiMatrix Boolean @default(false)
   billingTerms String      // e.g. "Project will be billed 100% at time of submission"
   status       QuoteStatus @default(draft)
   notes        String?     @db.Text

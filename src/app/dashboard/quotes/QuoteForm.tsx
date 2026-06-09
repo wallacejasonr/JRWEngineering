@@ -22,6 +22,8 @@ type Defaults = {
   reportRate: string;
   billingTerms: string;
   notes: string | null;
+  includeTypicalSsiMatrix: boolean;
+  includeConcreteSsiMatrix: boolean;
 };
 
 export default function QuoteForm({
@@ -182,6 +184,28 @@ export default function QuoteForm({
             />
           </div>
         </Field>
+      </div>
+
+      <div className="space-y-2 pt-1">
+        <p className="text-sm font-medium text-slate-700">Include in PDF addendum:</p>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="includeTypicalSsiMatrix"
+            defaultChecked={defaults.includeTypicalSsiMatrix}
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span>Typical SSI Pricing Matrix</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="includeConcreteSsiMatrix"
+            defaultChecked={defaults.includeConcreteSsiMatrix}
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span>Concrete Construction SSI Matrix</span>
+        </label>
       </div>
 
       <Field label="Billing Terms" name="billingTerms" state={state}>

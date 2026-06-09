@@ -67,6 +67,8 @@ export default async function NewQuotePage({
               billingTerms:
                 "Project will be billed 100% at time of submission.",
               notes: null,
+              includeTypicalSsiMatrix: false,
+              includeConcreteSsiMatrix: false,
             }}
           />
         )}

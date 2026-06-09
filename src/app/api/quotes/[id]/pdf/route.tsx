@@ -56,6 +56,8 @@ export async function GET(
           siteVisitRate: quote.siteVisitRate.toNumber(),
           additionalHourlyRate: quote.additionalHourlyRate.toNumber(),
           reportRate: quote.reportRate.toNumber(),
+          includeTypicalMatrix: quote.includeTypicalSsiMatrix,
+          includeConcreteMatrix: quote.includeConcreteSsiMatrix,
         },
         inclusions: quote.inclusions,
         exclusions: quote.exclusions,

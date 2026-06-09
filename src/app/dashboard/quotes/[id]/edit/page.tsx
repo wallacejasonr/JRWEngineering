@@ -57,6 +57,8 @@ export default async function EditQuotePage({
             reportRate: quote.reportRate.toString(),
             billingTerms: quote.billingTerms,
             notes: quote.notes,
+            includeTypicalSsiMatrix: quote.includeTypicalSsiMatrix,
+            includeConcreteSsiMatrix: quote.includeConcreteSsiMatrix,
           }}
         />
       </div>

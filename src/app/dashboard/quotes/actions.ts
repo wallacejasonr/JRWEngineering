@@ -25,6 +25,8 @@ const QuoteSchema = z.object({
   reportRate: z.coerce.number().nonnegative("Report rate must be 0 or greater"),
   billingTerms: z.string().min(1, "Billing terms are required").max(2000),
   notes: z.string().max(5000).nullable(),
+  includeTypicalSsiMatrix: z.boolean(),
+  includeConcreteSsiMatrix: z.boolean(),
 });
 
 function parseListField(formData: FormData, key: string): string[] {
@@ -52,6 +54,8 @@ export async function createQuote(
     reportRate: getString(formData, "reportRate").replace(/[^0-9.]/g, ""),
     billingTerms: getString(formData, "billingTerms"),
     notes: getOptionalString(formData, "notes"),
+    includeTypicalSsiMatrix: formData.get("includeTypicalSsiMatrix") === "on",
+    includeConcreteSsiMatrix: formData.get("includeConcreteSsiMatrix") === "on",
   };
 
   const parse = QuoteSchema.safeParse(input);
@@ -126,6 +130,8 @@ export async function updateQuote(
     reportRate: getString(formData, "reportRate").replace(/[^0-9.]/g, ""),
     billingTerms: getString(formData, "billingTerms"),
     notes: getOptionalString(formData, "notes"),
+    includeTypicalSsiMatrix: formData.get("includeTypicalSsiMatrix") === "on",
+    includeConcreteSsiMatrix: formData.get("includeConcreteSsiMatrix") === "on",
   };
 
   const parse = QuoteSchema.safeParse(input);

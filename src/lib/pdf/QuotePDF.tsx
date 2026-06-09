@@ -34,6 +34,8 @@ type QuoteData = {
     siteVisitRate: number;
     additionalHourlyRate: number;
     reportRate: number;
+    includeTypicalMatrix: boolean;
+    includeConcreteMatrix: boolean;
   };
   project: {
     projectNumber: string;
@@ -118,7 +120,11 @@ export function QuotePDF({
 
         <FooterBanner />
       </Page>
-      <SsiFeeSchedulePages rates={quote.feeSchedule} />
+      <SsiFeeSchedulePages
+        rates={quote.feeSchedule}
+        includeTypicalMatrix={quote.feeSchedule.includeTypicalMatrix}
+        includeConcreteMatrix={quote.feeSchedule.includeConcreteMatrix}
+      />
     </Document>
   );
 }

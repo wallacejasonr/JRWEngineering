@@ -316,20 +316,32 @@ function MatrixPage({
   );
 }
 
-export function SsiFeeSchedulePages({ rates }: { rates: Rates }) {
+export function SsiFeeSchedulePages({
+  rates,
+  includeTypicalMatrix,
+  includeConcreteMatrix,
+}: {
+  rates: Rates;
+  includeTypicalMatrix: boolean;
+  includeConcreteMatrix: boolean;
+}) {
   return (
     <Fragment>
       <PageA rates={rates} />
-      <MatrixPage
-        title="JRW Engineering – Typical SSI Pricing Matrix"
-        rows={TYPICAL_SSI_ROWS}
-        rates={rates}
-      />
-      <MatrixPage
-        title="Concrete Construction SSI"
-        rows={CONCRETE_ROWS}
-        rates={rates}
-      />
+      {includeTypicalMatrix && (
+        <MatrixPage
+          title="JRW Engineering – Typical SSI Pricing Matrix"
+          rows={TYPICAL_SSI_ROWS}
+          rates={rates}
+        />
+      )}
+      {includeConcreteMatrix && (
+        <MatrixPage
+          title="Concrete Construction SSI"
+          rows={CONCRETE_ROWS}
+          rates={rates}
+        />
+      )}
     </Fragment>
   );
 }
