@@ -74,7 +74,7 @@ const slides: Slide[] = [
 
 export default function HomePage() {
   return (
-    <div className="font-body text-ink">
+    <div className="bg-paper font-body text-ink">
       <Header />
       <main className="flex-1">
         {/* Hero — centered, navy */}
