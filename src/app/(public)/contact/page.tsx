@@ -1,140 +1,133 @@
 import type { Metadata } from "next";
+import ContactForm from "@/components/marketing/ContactForm";
+import Reveal from "@/components/marketing/Reveal";
 
 export const metadata: Metadata = {
-  title: "Contact Us | JRW Engineering",
+  title: "Contact — JRW Engineering | Phoenix, AZ Structural Engineering",
   description:
-    "Get in touch with JRW Engineering for structural and civil engineering services in Phoenix, AZ.",
+    "Get in touch with JRW Engineering for structural engineering services in Phoenix, Arizona. Call 602-680-9831 or email jason@jrwengineering.us.",
 };
+
+const states = ["AZ", "NM", "CA", "OR", "CO"];
 
 export default function ContactPage() {
   return (
     <>
-      {/* Page Header */}
-      <section className="bg-slate-900 py-16">
-        <div className="mx-auto max-w-7xl px-4 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white">
-            Contact Us
+      {/* Page header */}
+      <section className="bg-navy text-paper">
+        <div className="mx-auto max-w-[1240px] px-[clamp(20px,5vw,64px)] pb-[clamp(40px,5vw,64px)] pt-[clamp(56px,7vw,104px)]">
+          <span className="inline-flex items-center gap-3 font-label text-xs font-medium uppercase tracking-[0.22em] text-accent-soft before:inline-block before:h-[2px] before:w-[26px] before:bg-accent-soft">
+            Get in touch
+          </span>
+          <h1 className="my-[22px] max-w-[16ch] font-display text-[clamp(38px,5.6vw,68px)] font-extrabold leading-none tracking-[-0.025em] text-white">
+            Let&apos;s talk about your <span className="text-accent-soft">project</span>.
           </h1>
-          <p className="mt-4 text-lg text-slate-300">
-            Ready to discuss your project? Reach out and we will respond within
-            one business day.
+          <p className="max-w-[56ch] text-[clamp(16px,1.4vw,20px)] leading-[1.6] text-paper/70">
+            Whether you need a quote, a plan review, or a second set of eyes on a
+            structural challenge, reach out and we will respond within one
+            business day.
           </p>
         </div>
       </section>
 
-      {/* Contact Content */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-            {/* Contact Info */}
-            <div>
-              <h2 className="mb-6 text-2xl font-bold text-slate-900">
-                Get in Touch
+      {/* Body */}
+      <section className="px-[clamp(20px,5vw,64px)] py-[clamp(56px,7vw,104px)]">
+        <div className="mx-auto grid max-w-[1240px] gap-[clamp(36px,5vw,72px)] md:grid-cols-[0.85fr_1.15fr]">
+          {/* Contact details */}
+          <Reveal>
+            <div className="border-t-2 border-ink pt-5">
+              <div className="mb-[18px] font-label text-xs uppercase tracking-[0.12em] text-steel">
+                Direct contact
+              </div>
+
+              <div className="space-y-7">
+                <div>
+                  <div className="font-label text-[11px] uppercase tracking-[0.12em] text-steel-2">
+                    Phone
+                  </div>
+                  <a
+                    href="tel:+16026809831"
+                    className="mt-1 inline-block font-display text-[clamp(20px,2.4vw,28px)] font-extrabold tracking-[-0.02em] text-ink transition-colors hover:text-accent"
+                  >
+                    602-680-9831
+                  </a>
+                </div>
+
+                <div>
+                  <div className="font-label text-[11px] uppercase tracking-[0.12em] text-steel-2">
+                    Email
+                  </div>
+                  <a
+                    href="mailto:jason@jrwengineering.us"
+                    className="mt-1 inline-block font-display text-[clamp(18px,2vw,24px)] font-extrabold tracking-[-0.02em] text-ink transition-colors hover:text-accent"
+                  >
+                    jason@jrwengineering.us
+                  </a>
+                </div>
+
+                <div>
+                  <div className="font-label text-[11px] uppercase tracking-[0.12em] text-steel-2">
+                    Based in
+                  </div>
+                  <p className="mt-1 text-[17px] leading-[1.6] text-ink">
+                    Phoenix, Arizona
+                  </p>
+                </div>
+              </div>
+
+              {/* Business hours */}
+              <div className="mt-9 rounded border border-line bg-paper p-6">
+                <div className="mb-3 font-label text-xs uppercase tracking-[0.12em] text-steel">
+                  Business hours
+                </div>
+                <dl className="space-y-1.5 text-[15px] leading-[1.6] text-ink">
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-steel">Monday &ndash; Friday</dt>
+                    <dd className="font-label text-steel-2">
+                      8:00 AM &ndash; 5:00 PM MST
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-steel">Saturday &ndash; Sunday</dt>
+                    <dd className="font-label text-steel-2">Closed</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Licensure */}
+              <div className="mb-[14px] mt-9 font-label text-xs uppercase tracking-[0.12em] text-steel">
+                Licensed in
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {states.map((state) => (
+                  <span
+                    key={state}
+                    className="flex items-baseline gap-1.5 rounded border border-line bg-paper px-3.5 py-2"
+                  >
+                    <span className="font-display text-[15px] font-extrabold tracking-[-0.01em]">
+                      {state}
+                    </span>
+                    <span className="font-label text-[10px] uppercase tracking-[0.08em] text-accent">
+                      P.E.
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Inquiry form (navy panel) */}
+          <Reveal>
+            <div className="rounded-md bg-navy p-[clamp(24px,4vw,44px)]">
+              <span className="inline-flex items-center gap-3 font-label text-xs font-medium uppercase tracking-[0.22em] text-accent-soft before:inline-block before:h-[2px] before:w-[26px] before:bg-accent-soft">
+                Request a quote
+              </span>
+              <h2 className="mb-7 mt-4 font-display text-[clamp(24px,3vw,34px)] font-extrabold tracking-[-0.02em] text-white">
+                Tell us about the work.
               </h2>
-              <p className="mb-8 text-base leading-relaxed text-slate-600">
-                Whether you have a question about our services, need a quote for
-                an upcoming project, or want to discuss a technical challenge, we
-                are here to help.
-              </p>
-
-              <div className="space-y-6">
-                {/* Phone */}
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                    <svg
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      Phone
-                    </h3>
-                    <a
-                      href="tel:6026809831"
-                      className="mt-1 block text-sm text-slate-600 hover:text-blue-600"
-                    >
-                      (602) 680-9831
-                    </a>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                    <svg
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      Email
-                    </h3>
-                    <a
-                      href="mailto:jason@jrwengineering.us"
-                      className="mt-1 block text-sm text-slate-600 hover:text-blue-600"
-                    >
-                      jason@jrwengineering.us
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Hours */}
-              <div className="mt-8 rounded-lg bg-slate-50 p-6">
-                <h3 className="mb-2 text-sm font-semibold text-slate-900">
-                  Business Hours
-                </h3>
-                <p className="text-sm text-slate-600">
-                  Monday &ndash; Friday: 8:00 AM &ndash; 5:00 PM MST
-                </p>
-                <p className="text-sm text-slate-600">
-                  Saturday &ndash; Sunday: Closed
-                </p>
-              </div>
+              <ContactForm />
             </div>
-
-            {/* Email CTA */}
-            <div>
-              <div className="flex h-full flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-10 text-center">
-                <h2 className="mb-3 text-2xl font-bold text-slate-900">
-                  Email Us
-                </h2>
-                <p className="mb-8 max-w-sm text-base leading-relaxed text-slate-600">
-                  Reach out by email and we will respond within one business
-                  day.
-                </p>
-                <a
-                  href="mailto:jason@jrwengineering.us"
-                  className="inline-block rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-                >
-                  Email jason@jrwengineering.us
-                </a>
-                <p className="mt-4 text-sm text-slate-500">
-                  jason@jrwengineering.us
-                </p>
-              </div>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
     </>

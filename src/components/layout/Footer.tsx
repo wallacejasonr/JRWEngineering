@@ -1,75 +1,90 @@
 import Link from "next/link";
+import Image from "next/image";
 
-const quickLinks = [
+const siteLinks = [
+  { href: "/", label: "Home" },
+  { href: "/#services", label: "Services" },
+  { href: "/#work", label: "Projects" },
   { href: "/about", label: "About" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/contact", label: "Contact" },
 ];
+
+const states = ["AZ", "NM", "CA", "OR", "CO"];
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-800 text-slate-300">
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {/* Company Info */}
+    <footer className="border-t border-line bg-paper pb-10 pt-16 font-body text-ink">
+      <div className="mx-auto max-w-[1240px] px-[clamp(20px,5vw,64px)]">
+        <div className="flex flex-wrap items-start justify-between gap-10">
           <div>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-                JRW
-              </div>
-              <span className="text-lg font-bold text-white">
-                JRW Engineering
-              </span>
-            </div>
-            <p className="mb-2 text-sm leading-relaxed text-slate-400">
-              Professional civil and structural engineering services in Phoenix,
-              Arizona. Licensed PE providing reliable, responsive engineering
-              solutions for commercial and residential projects.
+            <Image
+              src="/marketing/jrw-wordmark-knockout.png"
+              alt="JRW Engineering"
+              width={150}
+              height={30}
+              className="mb-[18px] h-[30px] w-auto"
+            />
+            <p className="max-w-[34ch] text-sm text-steel">
+              Independent structural engineering for residential and commercial
+              projects across the desert Southwest.
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Quick Links
-            </h3>
-            <nav className="flex flex-col gap-2">
-              {quickLinks.map((link) => (
+          <div className="flex flex-wrap gap-12">
+            <div>
+              <h4 className="mb-3.5 font-label text-[11px] font-medium uppercase tracking-[0.14em] text-steel-2">
+                Site
+              </h4>
+              {siteLinks.map((link) => (
                 <Link
-                  key={link.href}
+                  key={link.label}
                   href={link.href}
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                  className="block py-[5px] text-[15px] transition-colors hover:text-accent"
                 >
                   {link.label}
                 </Link>
               ))}
-            </nav>
-          </div>
+            </div>
 
-          {/* Contact */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-              Contact Us
-            </h3>
-            <address className="flex flex-col gap-2 text-sm not-italic text-slate-400">
-              <a
-                href="tel:6026809831"
-                className="transition-colors hover:text-white"
-              >
-                (602) 680-9831
-              </a>
+            <div>
+              <h4 className="mb-3.5 font-label text-[11px] font-medium uppercase tracking-[0.14em] text-steel-2">
+                Contact
+              </h4>
               <a
                 href="mailto:jason@jrwengineering.us"
-                className="transition-colors hover:text-white"
+                className="block py-[5px] text-[15px] transition-colors hover:text-accent"
               >
                 jason@jrwengineering.us
               </a>
-            </address>
+              <a
+                href="tel:+16026809831"
+                className="block py-[5px] text-[15px] transition-colors hover:text-accent"
+              >
+                602-680-9831
+              </a>
+              <span className="block py-[5px] text-[15px]">Phoenix, Arizona</span>
+            </div>
+
+            <div>
+              <h4 className="mb-3.5 font-label text-[11px] font-medium uppercase tracking-[0.14em] text-steel-2">
+                Licensed In
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {states.map((state) => (
+                  <span
+                    key={state}
+                    className="rounded-full border border-line px-3 py-[5px] font-label text-[11px] tracking-[0.1em] text-steel"
+                  >
+                    <b className="font-semibold text-accent">{state}</b>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mt-10 border-t border-slate-700 pt-6 text-center text-xs text-slate-500">
-          &copy; 2026 JRW Engineering. All rights reserved.
+        <div className="mt-12 flex flex-wrap justify-between gap-5 border-t border-line pt-6 font-label text-xs tracking-[0.04em] text-steel-2">
+          <span>© 2026 JRW Engineering · Jason R. Wallace, P.E.</span>
+          <span>Structural Engineering · Phoenix, AZ</span>
         </div>
       </div>
     </footer>

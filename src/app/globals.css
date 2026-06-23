@@ -12,6 +12,25 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  --color-navy: #13294d;
+  --color-navy-2: #1d3c66;
+  --color-navy-3: #2b5184;
+  --color-paper: #eaeef3;
+  --color-paper-2: #dfe5ec;
+  --color-paper-3: #d2dae3;
+  --color-ink: #16263f;
+  --color-steel: #586475;
+  --color-steel-2: #8893a2;
+  --color-line: #cdd5df;
+  --color-accent: #c4571e;
+  --color-accent-soft: #e08a4f;
+
+  --font-display: var(--font-archivo);
+  --font-body: var(--font-hanken);
+  --font-label: var(--font-plex-mono);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

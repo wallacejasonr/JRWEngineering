@@ -1,152 +1,151 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import Reveal from "@/components/marketing/Reveal";
 
 export const metadata: Metadata = {
-  title: "About Us | JRW Engineering",
+  title: "About — Jason R. Wallace, P.E. | JRW Engineering",
   description:
-    "Learn about JRW Engineering, a Phoenix-based civil and structural engineering firm.",
+    "Jason R. Wallace, P.E., is the founder of JRW Engineering, a Phoenix-based structural engineering practice serving residential and commercial projects across the desert Southwest.",
 };
 
-const values = [
-  {
-    title: "Integrity",
-    description:
-      "Every calculation, every seal, every deliverable reflects our commitment to doing the job right. We stand behind our work because our clients depend on it.",
-  },
-  {
-    title: "Precision",
-    description:
-      "Engineering is a discipline of exactness. We apply rigorous analysis and attention to detail to every project, no matter the size or complexity.",
-  },
-  {
-    title: "Client Service",
-    description:
-      "We believe responsive communication and reliable turnaround times are just as important as technical excellence. Your project timelines matter to us.",
-  },
+const profile = [
+  "Residential structural design",
+  "Commercial & mixed-use",
+  "Inspections & assessments",
+  "Renovations & additions",
+  "Permit & plan review",
 ];
+
+const creds = ["Arizona", "New Mexico", "California", "Oregon", "Colorado"];
 
 export default function AboutPage() {
   return (
     <>
-      {/* Page Header */}
-      <section className="bg-slate-900 py-16">
-        <div className="mx-auto max-w-7xl px-4 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white">
-            About JRW Engineering
-          </h1>
-          <p className="mt-4 text-lg text-slate-300">
-            Professional engineering services built on experience, precision, and
-            a commitment to client success.
-          </p>
-        </div>
-      </section>
-
-      {/* Company Story */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="mb-6 text-3xl font-bold text-slate-900">
-              Our Story
-            </h2>
-            <div className="space-y-4 text-base leading-relaxed text-slate-600">
-              <p>
-                JRW Engineering was founded by Jason R. Wallace, PE, with a
-                clear mission: to provide responsive, high-quality structural and
-                civil engineering services to the Phoenix metropolitan area and
-                beyond. Based in Phoenix, Arizona, we serve contractors,
-                architects, developers, and property owners across the state.
-              </p>
-              <p>
-                Our firm specializes in the practical side of engineering &mdash;
-                delivering the calculations, sealed documents, and construction
-                support that move projects from design to completion. Whether it
-                is a commercial restaurant build-out, a residential addition, or
-                a municipal infrastructure project, we bring the same level of
-                professionalism and technical rigor to every engagement.
-              </p>
-              <p>
-                We understand that our clients need more than just numbers on a
-                page. They need an engineering partner who communicates clearly,
-                meets deadlines, and provides solutions that are both
-                code-compliant and constructable. That is the standard we hold
-                ourselves to on every project.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="bg-slate-50 py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <h2 className="mb-12 text-center text-3xl font-bold text-slate-900">
-            Our Values
-          </h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {values.map((value) => (
-              <div
-                key={value.title}
-                className="rounded-lg bg-white p-8 shadow-sm"
-              >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                  <svg
-                    className="h-6 w-6 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mb-3 text-xl font-semibold text-slate-900">
-                  {value.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  {value.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Credentials */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-6 text-3xl font-bold text-slate-900">
-              Credentials &amp; Licensing
-            </h2>
-            <p className="mb-8 text-base leading-relaxed text-slate-600">
-              JRW Engineering maintains all required professional licensing and
-              stays current with continuing education requirements to ensure our
-              clients receive the highest standard of service.
+      {/* About hero */}
+      <section className="px-[clamp(20px,5vw,64px)] pb-[clamp(40px,5vw,72px)] pt-[clamp(56px,7vw,110px)]">
+        <div className="mx-auto grid max-w-[1240px] items-center gap-[clamp(36px,5vw,72px)] md:grid-cols-[1.15fr_0.85fr]">
+          <Reveal>
+            <span className="inline-flex items-center gap-3 font-label text-xs font-medium uppercase tracking-[0.22em] text-accent before:inline-block before:h-[2px] before:w-[26px] before:bg-accent">
+              About the engineer
+            </span>
+            <h1 className="my-[26px] font-display text-[clamp(38px,5.6vw,72px)] font-extrabold leading-none tracking-[-0.025em]">
+              Jason R.
+              <br />
+              Wallace, <span className="text-accent">P.E.</span>
+            </h1>
+            <p className="mb-[26px] font-label text-sm uppercase tracking-[0.1em] text-steel">
+              Principal Structural Engineer · JRW Engineering
             </p>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div className="rounded-lg border border-slate-200 p-6">
-                <p className="text-2xl font-bold text-blue-600">PE</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Licensed Professional Engineer
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 p-6">
-                <p className="text-2xl font-bold text-blue-600">AZ</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  State of Arizona Licensed
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 p-6">
-                <p className="text-2xl font-bold text-blue-600">IBC</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  International Building Code Compliant
-                </p>
-              </div>
+            <p className="max-w-[54ch] text-[clamp(17px,1.5vw,21px)] leading-[1.6] text-steel">
+              A one-person structural practice built on a simple idea: the
+              engineer who runs the calculations should be the same person who
+              answers your call, walks your site, and stamps your drawings.
+            </p>
+          </Reveal>
+
+          <Reveal className="relative">
+            <div className="relative h-[clamp(380px,46vw,540px)] w-full overflow-hidden rounded-md">
+              <Image
+                src="/marketing/portrait.webp"
+                alt="Jason R. Wallace, P.E."
+                fill
+                sizes="(max-width: 860px) 100vw, 40vw"
+                className="object-cover"
+              />
             </div>
-          </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* About body */}
+      <section className="px-[clamp(20px,5vw,64px)] py-[clamp(56px,7vw,104px)]">
+        <div className="mx-auto grid max-w-[1240px] gap-[clamp(36px,6vw,90px)] md:grid-cols-[0.7fr_1.3fr]">
+          <Reveal className="self-start border-t-2 border-ink pt-5">
+            <div className="mb-[18px] font-label text-xs uppercase tracking-[0.12em] text-steel">
+              Profile
+            </div>
+            <p className="font-label text-[13.5px] leading-[1.9] text-steel">
+              {profile.map((item, i) => (
+                <span key={item}>
+                  {item}
+                  {i < profile.length - 1 && <br />}
+                </span>
+              ))}
+            </p>
+            <div className="mb-[18px] mt-[34px] font-label text-xs uppercase tracking-[0.12em] text-steel">
+              Education
+            </div>
+            <p className="font-label text-[13.5px] leading-[1.8] text-steel">
+              B.S. Civil Engineering
+              <br />
+              <span className="text-steel-2">New Mexico State University</span>
+            </p>
+          </Reveal>
+
+          <Reveal>
+            <h2 className="mb-6 font-display text-[clamp(26px,3vw,40px)] font-extrabold tracking-[-0.02em]">
+              Engineering you can put your name next to.
+            </h2>
+            <p className="mb-[1.3em] max-w-[62ch] text-[17px] leading-[1.7] text-ink">
+              <span className="font-semibold text-accent">
+                Jason R. Wallace, P.E.
+              </span>{" "}
+              is the founder of JRW Engineering, a Phoenix-based engineering firm
+              focused on connecting design teams and contractors through
+              practical, construction-driven engineering solutions.
+            </p>
+            <p className="mb-[1.3em] max-w-[62ch] text-[17px] leading-[1.7] text-ink">
+              With experience spanning structural design, BIM coordination,
+              delegated engineering, and over a decade of construction
+              management, Jason helps transform engineering concepts into
+              buildable, efficient, and successful projects.
+            </p>
+            <p className="mb-[1.3em] max-w-[62ch] text-[17px] leading-[1.7] text-ink">
+              JRW Engineering specializes in providing responsive engineering
+              support that bridges the gap between the office and the jobsite.
+            </p>
+
+            <div className="mb-[18px] mt-[46px] font-label text-xs uppercase tracking-[0.12em] text-steel">
+              Licensure
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              {creds.map((state) => (
+                <div
+                  key={state}
+                  className="flex items-baseline gap-[9px] rounded border border-line bg-paper px-5 py-3"
+                >
+                  <span className="font-display text-[17px] font-extrabold tracking-[-0.01em]">
+                    {state}
+                  </span>
+                  <span className="font-label text-xs uppercase tracking-[0.08em] text-accent">
+                    P.E.
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* CTA band */}
+      <section className="bg-navy text-paper">
+        <div className="mx-auto max-w-[1240px] px-[clamp(20px,5vw,64px)] py-[clamp(48px,5vw,72px)] text-center">
+          <span className="inline-flex items-center justify-center gap-3 font-label text-xs font-medium uppercase tracking-[0.22em] text-accent-soft before:inline-block before:h-[2px] before:w-[26px] before:bg-accent-soft after:inline-block after:h-[2px] after:w-[26px] after:bg-accent-soft">
+            Let&apos;s build something solid
+          </span>
+          <h2 className="mx-auto mb-7 mt-5 max-w-[18ch] font-display text-[clamp(30px,4.4vw,52px)] font-extrabold tracking-[-0.02em] text-white">
+            Have a project in mind?
+          </h2>
+          <Link
+            href="/#contact"
+            className="group inline-flex items-center gap-2.5 rounded border-[1.5px] border-white px-[26px] py-[15px] font-label text-[13px] font-medium uppercase tracking-[0.1em] text-white transition-colors hover:bg-white hover:text-navy"
+          >
+            Get in touch{" "}
+            <span className="transition-transform group-hover:translate-x-1">
+              →
+            </span>
+          </Link>
         </div>
       </section>
     </>
